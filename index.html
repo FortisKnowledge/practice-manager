@@ -209,7 +209,12 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       </div>
     </div>
     <div class="save-strip">
-      <button class="btn-primary" onclick="saveTodayPractice()">💾 練習を保存する</button>
+      <button class="btn-primary" onclick="saveTodayPractice()" style="margin-bottom:8px">💾 練習を保存する</button>
+      <button class="btn-secondary" onclick="shareMenuCode()" style="margin-bottom:8px">📤 共有コードを発行する</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" class="form-input" id="importCodeInput" placeholder="共有コードを入力して読み込む..." style="flex:1;font-size:13px;padding:10px 12px">
+        <button onclick="importMenuCode()" style="background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans JP',sans-serif;">読込</button>
+      </div>
     </div>
   </div>
 
@@ -340,6 +345,22 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 </nav>
 
 <!-- DETAIL MODAL -->
+<!-- SHARE CODE MODAL -->
+<div class="modal-overlay" id="shareCodeModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-handle" onclick="document.getElementById('shareCodeModal').classList.remove('open')"></div>
+    <div style="padding:0 16px 28px">
+      <div style="font-size:17px;font-weight:700;margin-bottom:6px">📤 共有コード</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px">このコードをLINEで送れば、誰でも同じメニューを再現できます</div>
+      <div id="shareCodeText"
+        onclick="selectShareCode()"
+        style="background:#1a1a2e;color:#7cfc7c;font-family:monospace;font-size:13px;padding:14px;border-radius:var(--radius-sm);word-break:break-all;line-height:1.8;cursor:pointer;border:2px solid #3a3a5c;margin-bottom:8px"></div>
+      <div id="shareCodeMsg" style="font-size:13px;color:var(--primary);font-weight:700;text-align:center;margin-bottom:16px"></div>
+      <button class="btn-primary" onclick="copyShareCode()">📋 もう一度コピーする</button>
+    </div>
+  </div>
+</div>
+
 <!-- WATER POSITION MODAL -->
 <div class="modal-overlay" id="waterModal" onclick="closeWaterModalOutside(event)">
   <div class="modal">
@@ -1059,7 +1080,90 @@ function applySuggested(items){
   document.querySelectorAll('#screen-today .tab-item').forEach((el,i)=>el.classList.toggle('active',i===0));
 }
 
-// ========== HISTORY ==========
+// ========== SHARE CODE ==========
+// フォーマット: FPM-[id]x[setTime]x[sets].[id]x[setTime]x[sets]...
+// 給水タイムは W[time] で表現
+// 例: FPM-1x3x1.2x3x1.Wx3.11x1x15.16x5x3
+function encodeMenuCode(menus){
+  const parts=menus.map(m=>{
+    if(m.isWater) return 'W'+(m.time||3);
+    return `${m.id}x${m.setTime||m.time||5}x${m.sets||1}`;
+  });
+  return 'FPM-'+parts.join('.');
+}
+
+function decodeMenuCode(code){
+  if(!code||!code.startsWith('FPM-')) return null;
+  const all=getMenus();
+  const parts=code.replace('FPM-','').split('.');
+  const result=[];
+  for(let i=0;i<parts.length;i++){
+    const p=parts[i];
+    if(p.startsWith('W')){
+      const t=parseInt(p.slice(1))||3;
+      result.push({...WATER_BREAK,time:t,uid:Date.now()+Math.random()+i});
+    } else {
+      const [idStr,stStr,scStr]=p.split('x');
+      const id=parseInt(idStr);
+      const st=parseInt(stStr)||5;
+      const sc=parseInt(scStr)||1;
+      const m=all.find(x=>x.id===id);
+      if(m) result.push({...m,setTime:st,sets:sc,time:st*sc,uid:Date.now()+Math.random()+i});
+    }
+  }
+  return result.length>0?result:null;
+}
+
+function shareMenuCode(){
+  const realMenus=todayMenus.filter(m=>!m.isWater);
+  if(!realMenus.length){alert('メニューを追加してから共有コードを発行してください');return;}
+  const code=encodeMenuCode(todayMenus);
+  // クリップボードにコピー
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>{
+      showCodeModal(code,'コピー済み ✓ LINEに貼り付けて送信してください');
+    }).catch(()=>showCodeModal(code,'上のコードを長押しでコピーしてください'));
+  } else {
+    showCodeModal(code,'上のコードを長押しでコピーしてください');
+  }
+}
+
+function showCodeModal(code,msg){
+  document.getElementById('shareCodeText').textContent=code;
+  document.getElementById('shareCodeMsg').textContent=msg;
+  document.getElementById('shareCodeModal').classList.add('open');
+}
+
+function importMenuCode(){
+  const code=document.getElementById('importCodeInput').value.trim();
+  if(!code){alert('共有コードを入力してください');return;}
+  const menus=decodeMenuCode(code);
+  if(!menus){alert('コードが正しくありません。\n「FPM-」で始まる文字列を貼り付けてください');return;}
+  todayMenus=menus;
+  saveTodayDraft();
+  renderTodayList();
+  document.getElementById('importCodeInput').value='';
+  const total=calcTotalTime();
+  const count=menus.filter(m=>!m.isWater).length;
+  alert(`✅ メニューを読み込みました！\n${count}メニュー / 合計${total}分`);
+}
+function selectShareCode(){
+  const el=document.getElementById('shareCodeText');
+  if(window.getSelection&&document.createRange){
+    const range=document.createRange();range.selectNodeContents(el);
+    window.getSelection().removeAllRanges();window.getSelection().addRange(range);
+  }
+}
+function copyShareCode(){
+  const code=document.getElementById('shareCodeText').textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(()=>{document.getElementById('shareCodeMsg').textContent='コピー済み ✓';});
+  } else {
+    selectShareCode();document.execCommand('copy');
+    document.getElementById('shareCodeMsg').textContent='コピー済み ✓';
+  }
+}
+
 function renderHistory(){
   const hist=getHistory();
   const c=document.getElementById('historyList');

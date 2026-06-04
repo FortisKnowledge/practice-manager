@@ -1,0 +1,1198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Fortis Practice Manager</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{--primary:#1a3a5c;--primary-light:#2456a0;--accent:#e8472a;--bg:#f0f2f5;--bg-card:#fff;--text:#1a1a2e;--text-muted:#6b7280;--border:#e5e7eb;--border-strong:#d1d5db;--success:#16a34a;--success-bg:#dcfce7;--warning:#d97706;--warning-bg:#fef3c7;--danger:#dc2626;--danger-bg:#fee2e2;--radius:10px;--radius-sm:6px;--nav-h:60px;--bottom-h:64px;}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:430px;margin:0 auto;}
+.top-nav{position:sticky;top:0;z-index:100;background:var(--primary);height:var(--nav-h);display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.top-nav .logo{font-family:'Oswald',sans-serif;font-size:17px;font-weight:700;color:#fff;letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
+.top-nav .logo span{color:#ff6b4a;}
+.top-nav .date-badge{font-size:14px;color:rgba(255,255,255,.7);background:rgba(255,255,255,.1);padding:4px 10px;border-radius:20px;}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;z-index:100;background:var(--bg-card);border-top:1px solid var(--border);height:var(--bottom-h);display:flex;box-shadow:0 -2px 10px rgba(0,0,0,.08);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;border:none;cursor:pointer;color:var(--text-muted);font-family:'Noto Sans JP',sans-serif;font-size:15px;transition:color .15s;padding:8px 0;}
+.nav-btn.active{color:var(--primary-light);}
+.nav-btn svg{width:22px;height:22px;}
+.screen{display:none;padding-bottom:calc(var(--bottom-h) + 16px);}
+.screen.active{display:block;}
+.page-header{background:var(--primary);padding:16px 16px 20px;color:#fff;}
+.page-header h1{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-header p{font-size:14px;color:rgba(255,255,255,.7);}
+.section{padding:16px;}
+.section-title{font-size:15px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
+.card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:10px;}
+/* MENU CARD */
+.menu-card{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:12px 14px;margin-bottom:8px;display:flex;gap:10px;align-items:flex-start;cursor:pointer;transition:box-shadow .15s,transform .1s;position:relative;}
+.menu-card:active{transform:scale(.99);}
+.cat-dot{width:4px;min-height:48px;border-radius:4px;flex-shrink:0;align-self:stretch;}
+.menu-card .info{flex:1;min-width:0;}
+.menu-card .name{font-size:16px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.menu-card .meta{font-size:14px;color:var(--text-muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.menu-card .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
+.tag{font-size:15px;padding:2px 8px;border-radius:20px;font-weight:500;}
+.tag-cat{background:#e0e8ff;color:#3347a0;}
+.tag-pos{background:#e0f5ff;color:#1a6ea0;}
+.tag-tech{background:#e8f5e0;color:#276a1a;}
+.tag-risk-1{background:var(--success-bg);color:var(--success);}
+.tag-risk-2{background:var(--warning-bg);color:var(--warning);}
+.tag-risk-3{background:var(--danger-bg);color:var(--danger);}
+.tag-load-1{background:#f0faf0;color:#388e3c;}
+.tag-load-2{background:#fff8e1;color:#f57c00;}
+.tag-load-3{background:#fce4ec;color:#c62828;}
+.btn-add-menu{background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);width:32px;height:32px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
+.filter-row{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scrollbar-width:none;background:#fff;border-bottom:1px solid var(--border);}
+.filter-row::-webkit-scrollbar{display:none;}
+.filter-chip{flex-shrink:0;padding:6px 14px;border-radius:20px;border:1.5px solid var(--border-strong);background:#fff;color:var(--text-muted);font-size:14px;font-weight:500;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .15s;}
+.filter-chip.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.search-bar{padding:10px 16px;background:#fff;border-bottom:1px solid var(--border);}
+.search-bar input{width:100%;padding:10px 14px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;font-family:'Noto Sans JP',sans-serif;color:var(--text);background:var(--bg);outline:none;}
+.search-bar input:focus{border-color:var(--primary-light);}
+.result-count{padding:8px 16px;font-size:14px;color:var(--text-muted);background:var(--bg);}
+/* TODAY */
+.total-bar{background:var(--primary);padding:12px 16px;display:flex;justify-content:space-between;align-items:center;}
+.total-bar .t-val{font-size:24px;font-weight:700;color:#fff;font-family:'Oswald',sans-serif;}
+.total-bar .t-lbl{font-size:15px;color:rgba(255,255,255,.7);margin-top:2px;}
+/* TODAY ITEM - draggable */
+.today-item{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:11px 12px;margin-bottom:8px;display:flex;gap:10px;align-items:center;cursor:default;transition:opacity .2s,box-shadow .2s;position:relative;user-select:none;}
+.today-item.dragging{opacity:.4;box-shadow:0 8px 20px rgba(0,0,0,.2);}
+.today-item.drag-over{border:2px dashed var(--primary-light);background:#f0f4ff;}
+.drag-handle{color:#aab;font-size:22px;cursor:grab;flex-shrink:0;padding:4px 6px;touch-action:none;background:#f4f6fa;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center;width:32px;height:40px;}
+.drag-handle:active{cursor:grabbing;background:#e8ecf5;}
+/* water item draggable too */
+.water-item{background:#e0f2fe;border-radius:var(--radius-sm);border:1px dashed #0284c7;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:15px;color:#0369a1;cursor:default;user-select:none;}
+.water-item.dragging{opacity:.4;}
+.water-item.drag-over{border:2px dashed var(--primary);background:#bfdbfe;}
+.item-num{width:24px;height:24px;background:var(--primary);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;}
+.item-info{flex:1;min-width:0;cursor:pointer;}
+.item-name{font-size:16px;font-weight:700;margin-bottom:2px;}
+.item-meta{font-size:14px;color:var(--text-muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.item-time-input{width:44px;padding:3px 5px;border:1px solid var(--border-strong);border-radius:4px;font-size:14px;text-align:center;font-family:'Noto Sans JP',sans-serif;color:var(--text);}
+.item-sets-input{width:54px;padding:3px 6px;border:1px solid var(--border-strong);border-radius:4px;font-size:14px;text-align:center;font-family:'Noto Sans JP',sans-serif;color:var(--text);}
+.item-total-time{font-size:14px;font-weight:700;color:var(--primary);background:#e8f0fe;padding:2px 9px;border-radius:12px;white-space:nowrap;}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;padding:4px;flex-shrink:0;}
+.del-btn:active{color:var(--danger);}
+/* WATER BREAK */
+.water-item{background:#e0f2fe;border-radius:var(--radius-sm);border:1px dashed #0284c7;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:15px;color:#0369a1;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
+.empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.4;}
+.btn-primary{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:15px 20px;font-size:16px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s;box-shadow:0 2px 8px rgba(232,71,42,.3);}
+.btn-primary:active{transform:scale(.98);background:#c73d24;}
+.btn-secondary{background:#fff;color:var(--primary);border:2px solid var(--primary);border-radius:var(--radius);padding:13px 20px;font-size:15px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s;}
+.tab-bar{display:flex;background:#fff;border-bottom:1px solid var(--border);}
+.tab-item{flex:1;padding:12px 0;text-align:center;font-size:15px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tab-item.active{color:var(--primary);border-bottom-color:var(--primary);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+/* TEMPLATE */
+.template-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.template-card{background:var(--bg-card);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 12px;cursor:pointer;text-align:center;transition:all .15s;font-family:'Noto Sans JP',sans-serif;}
+.template-card:active{border-color:var(--primary);background:#f0f4ff;}
+.template-card .t-icon{font-size:24px;margin-bottom:6px;}
+.template-card .t-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:2px;}
+.template-card .t-desc{font-size:15px;color:var(--text-muted);}
+/* FORMS */
+.form-group{margin-bottom:16px;}
+.form-label{font-size:15px;font-weight:700;color:var(--text-muted);margin-bottom:6px;display:block;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.form-input,.form-select{width:100%;padding:11px 13px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:16px;font-family:'Noto Sans JP',sans-serif;color:var(--text);background:#fff;outline:none;-webkit-appearance:none;}
+.form-input:focus,.form-select:focus{border-color:var(--primary-light);}
+.toggle-group{display:flex;gap:6px;}
+.toggle-btn{flex:1;padding:9px;border-radius:var(--radius-sm);border:1.5px solid var(--border-strong);background:#fff;color:var(--text-muted);font-size:15px;font-weight:500;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .15s;text-align:center;}
+.toggle-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+/* HISTORY */
+.history-item{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:14px;margin-bottom:8px;cursor:pointer;}
+.history-date{font-size:14px;color:var(--text-muted);margin-bottom:4px;}
+.history-menus{font-size:15px;font-weight:500;margin-bottom:6px;line-height:1.5;}
+.history-stats{display:flex;gap:10px;flex-wrap:wrap;}
+.history-stat{font-size:15px;color:var(--text-muted);}
+/* CALENDAR */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:0 12px 12px;}
+.cal-header{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:8px 12px 4px;}
+.cal-day-name{text-align:center;font-size:15px;font-weight:700;color:var(--text-muted);}
+.cal-cell{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:14px;cursor:default;background:var(--bg);}
+.cal-cell.has-practice{background:var(--primary);color:#fff;font-weight:700;cursor:pointer;}
+.cal-cell.has-practice:active{background:var(--primary-light);}
+.cal-cell.today-cell{border:2px solid var(--accent);}
+.cal-cell.empty{background:transparent;}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px 4px;}
+.cal-nav button{background:none;border:1px solid var(--border-strong);border-radius:6px;padding:6px 12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:15px;}
+.cal-nav .month-label{font-size:17px;font-weight:700;}
+/* ANALYSIS */
+.bar-group{margin-bottom:10px;}
+.bar-label{font-size:14px;color:var(--text-muted);margin-bottom:4px;display:flex;justify-content:space-between;}
+.bar-track{height:10px;background:var(--bg);border-radius:5px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:5px;transition:width .8s ease;}
+.alert{border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:10px;font-size:15px;line-height:1.5;border-left:3px solid;}
+.alert-warning{background:var(--warning-bg);color:#92400e;border-color:var(--warning);}
+.alert-info{background:#e0f2fe;color:#0c4a6e;border-color:#0284c7;}
+.alert-success{background:var(--success-bg);color:#14532d;border-color:var(--success);}
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg-card);width:100%;max-width:430px;border-radius:var(--radius) var(--radius) 0 0;max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .25s ease;}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-handle{text-align:center;padding:12px;cursor:pointer;}
+.modal-handle::before{content:'';display:inline-block;width:40px;height:4px;border-radius:2px;background:var(--border-strong);}
+.modal-header{padding:0 16px 14px;border-bottom:1px solid var(--border);}
+.modal-header h2{font-size:18px;font-weight:700;margin-bottom:4px;}
+.modal-body{padding:16px;}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:15px;}
+.detail-row:last-child{border-bottom:none;}
+.detail-row .dl{color:var(--text-muted);}
+.detail-row .dv{font-weight:500;text-align:right;max-width:65%;}
+.video-link{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#dc2626;font-size:15px;font-weight:700;text-decoration:none;margin-top:12px;}
+.save-strip{position:sticky;bottom:68px;z-index:50;padding:0 16px 10px;}
+/* COMMENT BOX */
+.comment-area{width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:15px;font-family:'Noto Sans JP',sans-serif;color:var(--text);resize:none;outline:none;}
+.comment-area:focus{border-color:var(--primary-light);}
+/* SUGGEST RESULT */
+.suggest-header{background:var(--primary);color:#fff;padding:14px 16px;border-radius:var(--radius);margin-bottom:10px;}
+.suggest-header h3{font-size:15px;font-weight:700;margin-bottom:4px;}
+.suggest-header p{font-size:14px;opacity:.8;}
+/* MENU LIST */
+.menu-list{padding:10px 16px 0;}
+.water-badge{display:inline-flex;align-items:center;gap:4px;font-size:15px;padding:2px 8px;border-radius:20px;background:#e0f2fe;color:#0369a1;font-weight:500;}
+.heat-badge{display:inline-flex;align-items:center;gap:4px;font-size:15px;padding:2px 8px;border-radius:20px;background:#fee2e2;color:#991b1b;font-weight:500;}
+/* WATER POSITION PICKER */
+.water-pos-item{padding:10px 12px;border-radius:var(--radius-sm);cursor:pointer;transition:background .15s;border:1px solid transparent;margin-bottom:6px;}
+.water-pos-item:active{background:#e0f2fe;border-color:#0284c7;}
+.water-pos-item:first-child{background:#f0f9ff;border:1.5px dashed #0284c7;text-align:center;color:#0369a1;font-weight:700;font-size:15px;padding:12px;}
+.water-pos-after{background:var(--bg-card);border:1px solid var(--border);}
+.water-pos-after:active{background:#e0f2fe;}
+.water-pos-menu{font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px;}
+.water-pos-insert{font-size:15px;color:#0369a1;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="top-nav">
+  <div class="logo"><span style="font-size:20px">⚡</span> <span>Fortis</span>&nbsp;Practice Manager</div>
+  <div class="date-badge" id="todayDateNav"></div>
+</div>
+
+<!-- SCREEN 1: MENU LIST -->
+<div class="screen active" id="screen-db">
+  <div class="page-header"><h1>📋 練習メニュー一覧</h1><p>タップで詳細表示・今日の練習に追加</p></div>
+  <div class="search-bar"><input type="text" placeholder="🔍 メニュー名・目的で検索..." id="searchInput" oninput="filterMenus()"></div>
+  <div class="filter-row" id="catFilters"></div>
+  <div class="result-count" id="resultCount"></div>
+  <div class="menu-list" id="menuList"></div>
+</div>
+
+<!-- SCREEN 2: TODAY -->
+<div class="screen" id="screen-today">
+  <div class="page-header"><h1>🏐 今日の練習</h1><p>3〜3.5時間のメニューを組み立てよう</p></div>
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('today','manual',this)">手動作成</div>
+    <div class="tab-item" onclick="switchTab('today','template',this)">テンプレ</div>
+    <div class="tab-item" onclick="switchTab('today','suggest',this)">自動提案</div>
+  </div>
+
+  <!-- MANUAL -->
+  <div class="tab-panel active" id="tab-today-manual">
+    <div class="total-bar">
+      <div><div class="t-lbl">合計時間</div><div class="t-val" id="totalTime">0 分</div></div>
+      <div style="text-align:center"><button onclick="addWaterBreak()" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);color:#fff;border-radius:8px;padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">💧 給水追加</button></div>
+      <div style="text-align:right"><div class="t-lbl">目標: 180〜210分</div><div class="t-val" id="menuCount">0 件</div></div>
+    </div>
+    <div class="section" id="todayListWrap">
+      <div id="todayList"><div class="empty-state"><div class="icon">🏐</div><p>まだメニューがありません。<br>「練習メニュー一覧」からタップで追加！</p></div></div>
+    </div>
+    <div style="padding:0 16px 8px">
+      <div class="form-group">
+        <label class="form-label">コーチコメント（保存時に記録）</label>
+        <textarea class="comment-area" id="coachComment" rows="3" placeholder="今日の練習テーマ・気付きなど..."></textarea>
+      </div>
+    </div>
+    <div class="save-strip">
+      <button class="btn-primary" onclick="saveTodayPractice()">💾 練習を保存する</button>
+    </div>
+  </div>
+
+  <!-- TEMPLATE -->
+  <div class="tab-panel" id="tab-today-template">
+    <div class="section">
+      <div class="section-title">テンプレートを選択</div>
+      <div class="template-grid" id="templateGrid"></div>
+    </div>
+  </div>
+
+  <!-- SUGGEST -->
+  <div class="tab-panel" id="tab-today-suggest">
+    <div class="section">
+      <div class="section-title">今日の条件を入力</div>
+      <div class="form-group">
+        <label class="form-label">気温</label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="temp-normal" onclick="setTemp('normal')">通常</button>
+          <button class="toggle-btn" id="temp-hot" onclick="setTemp('hot')">猛暑日🌡</button>
+          <button class="toggle-btn" id="temp-cold" onclick="setTemp('cold')">寒冷日❄</button>
+        </div>
+      </div>
+      <div class="form-group form-row">
+        <div><label class="form-label">子供の人数</label><input type="number" class="form-input" id="cond-kids" value="15" min="5" max="30"></div>
+        <div><label class="form-label">コーチ人数</label><input type="number" class="form-input" id="cond-coaches" value="3" min="1" max="10"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">時期</label>
+        <select class="form-select" id="cond-period"><option value="normal">通常</option><option value="pre">大会前</option><option value="prematch">大会直前</option><option value="post">大会後</option></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">練習の重点</label>
+        <select class="form-select" id="cond-focus"><option value="balanced">バランス</option><option value="attack">アタック強化</option><option value="defense">ディフェンス強化</option><option value="team">連携強化</option><option value="fun">レク中心</option></select>
+      </div>
+      <button class="btn-primary" onclick="generateSuggestion()">⚡ メニューを自動生成</button>
+    </div>
+    <div id="suggestResult" style="padding:0 16px 16px;display:none"></div>
+  </div>
+</div>
+
+<!-- SCREEN 3: HISTORY -->
+<div class="screen" id="screen-history">
+  <div class="page-header"><h1>📅 練習履歴・分析</h1><p>過去の練習を振り返り偏りを発見しよう</p></div>
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('hist','cal',this)">カレンダー</div>
+    <div class="tab-item" onclick="switchTab('hist','list',this)">履歴一覧</div>
+    <div class="tab-item" onclick="switchTab('hist','analysis',this)">分析</div>
+  </div>
+  <div class="tab-panel active" id="tab-hist-cal">
+    <div class="cal-nav">
+      <button onclick="calPrev()">◀</button>
+      <span class="month-label" id="calMonthLabel"></span>
+      <button onclick="calNext()">▶</button>
+    </div>
+    <div class="cal-header" id="calHeader"></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div id="calDetail" style="padding:0 16px 16px"></div>
+  </div>
+  <div class="tab-panel" id="tab-hist-list">
+    <div class="section" id="historyList"></div>
+  </div>
+  <div class="tab-panel" id="tab-hist-analysis">
+    <div class="section">
+      <div class="form-group">
+        <label class="form-label">分析期間</label>
+        <div class="toggle-group">
+          <button class="toggle-btn active" id="period-30" onclick="setPeriod(30)">直近30日</button>
+          <button class="toggle-btn" id="period-90" onclick="setPeriod(90)">直近90日</button>
+          <button class="toggle-btn" id="period-all" onclick="setPeriod(999)">全期間</button>
+        </div>
+      </div>
+    </div>
+    <div id="analysisContent"></div>
+  </div>
+</div>
+
+<!-- SCREEN 4: SETTINGS -->
+<div class="screen" id="screen-settings">
+  <div class="page-header"><h1>⚙️ 設定・メニュー追加</h1><p>独自メニューの追加・管理</p></div>
+  <div class="section">
+    <div class="section-title">新しいメニューを追加</div>
+    <div class="card">
+      <div class="form-group"><label class="form-label">カテゴリ</label><select class="form-select" id="new-cat"><option>基本</option><option>実戦</option><option>測定</option><option>レク</option><option>筋トレ、反応トレ</option><option>アップ</option></select></div>
+      <div class="form-group"><label class="form-label">メニュー名</label><input type="text" class="form-input" id="new-name" placeholder="例：シングルキャッチ練習"></div>
+      <div class="form-group form-row">
+        <div><label class="form-label">所要時間(分)</label><input type="number" class="form-input" id="new-time" value="10" min="1"></div>
+        <div><label class="form-label">練習負荷(1-3)</label><input type="number" class="form-input" id="new-load" value="2" min="1" max="3"></div>
+      </div>
+      <div class="form-group form-row">
+        <div><label class="form-label">怪我リスク(1-3)</label><input type="number" class="form-input" id="new-risk" value="1" min="1" max="3"></div>
+        <div><label class="form-label">大人必要人数</label><input type="number" class="form-input" id="new-coaches" value="1" min="0"></div>
+      </div>
+      <div class="form-group"><label class="form-label">目的・方法</label><textarea class="form-input" id="new-purpose" rows="3" placeholder="メニューの目的や進め方..." style="resize:none"></textarea></div>
+      <div class="form-group"><label class="form-label">備考・注意事項</label><input type="text" class="form-input" id="new-note" placeholder="注意点など"></div>
+      <div class="form-group"><label class="form-label">技術タグ</label><input type="text" class="form-input" id="new-tech" placeholder="例：アタック、ディフェンス"></div>
+      <div class="form-group"><label class="form-label">YouTube動画URL（任意）</label><input type="text" class="form-input" id="new-video" placeholder="https://www.youtube.com/watch?v=..."></div>
+      <button class="btn-primary" onclick="addCustomMenu()">＋ メニューを追加</button>
+    </div>
+  </div>
+  <div class="section">
+    <div class="section-title">データ管理</div>
+    <div class="card">
+      <button class="btn-secondary" onclick="exportData()" style="margin-bottom:8px">📤 データをエクスポート</button>
+      <button class="btn-secondary" onclick="clearHistory()" style="color:var(--danger);border-color:var(--danger)">🗑 履歴をリセット</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showScreen('db',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+    練習一覧
+  </button>
+  <button class="nav-btn" onclick="showScreen('today',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+    今日の練習
+  </button>
+  <button class="nav-btn" onclick="showScreen('history',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    履歴
+  </button>
+  <button class="nav-btn" onclick="showScreen('settings',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    設定
+  </button>
+</nav>
+
+<!-- DETAIL MODAL -->
+<!-- WATER POSITION MODAL -->
+<div class="modal-overlay" id="waterModal" onclick="closeWaterModalOutside(event)">
+  <div class="modal">
+    <div class="modal-handle" onclick="closeWaterModal()"></div>
+    <div style="padding:0 16px 24px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:4px;padding:0 0 12px;border-bottom:1px solid var(--border)">💧 給水タイムをどこに入れる？</div>
+      <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px;padding-top:10px">挿入したい位置をタップしてください</div>
+      <div id="waterPositionList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal" onclick="closeModalOutside(event)">
+  <div class="modal"><div class="modal-handle" onclick="closeDetailModal()"></div><div id="modalBody"></div></div>
+</div>
+
+<script>
+// ========== MASTER DATA ==========
+const MASTER_MENUS=[
+ {id:1,cat:'基本',name:'キャッチボール',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'肩の可動域を広げ、相手の胸に確実に投げるように指導',note:'入団したての子には重点的に',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約5m'},
+ {id:2,cat:'基本',name:'ワンバンキャッチボール',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'相手が取りやすいワンバンの位置へ投げるよう指導',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約10m'},
+ {id:3,cat:'基本',name:'ノーバンキャッチボール',time:3,load:1,risk:2,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'ノーバンで相手の胸に届かせるボールコントロールや、身体連動性とコツ。キャッチは基本的にボディーキャッチ',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約10m'},
+ {id:4,cat:'基本',name:'キャッチボール遠投',time:3,load:1,risk:1,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'強肩向上、投球に必要な身体の連動性やコツ',note:'コートの長辺（20m）を使用するので連れ添いの子や女の子達に注意喚起',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約20m（コート長辺）'},
+ {id:5,cat:'基本',name:'2×2ワンバンキャッチボール',time:10,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'ボールコントロール（どの位置にワンバンさせるか）',note:'セット毎に相手を交代',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:3,setTime:3,video:'',dist:'約10m'},
+ {id:6,cat:'基本',name:'2×2ノーバンキャッチボール',time:10,load:1,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'ボールコントロール（相手の胸あたりを狙って投げる）',note:'セット毎に相手を交代',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:3,setTime:3,video:'',dist:'約10m'},
+ {id:7,cat:'基本',name:'膝つきゴロキャッチ',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'キャッチの基本',note:'入団したての子には重点的に',tech:['ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約3〜5m'},
+ {id:8,cat:'基本',name:'膝つきボディキャッチ',time:3,load:1,risk:2,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'キャッチの基本の徹底',note:'入団したての子には大人がフォロー',tech:['ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約3〜5m'},
+ {id:9,cat:'基本',name:'ハンドキャッチ',time:3,load:1,risk:3,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'ハンドキャッチからの投球モーション',note:'入団したての子には大人がフォロー',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約5〜8m'},
+ {id:10,cat:'実戦',name:'ワンゲット（2チームに分け）',time:3,load:4,risk:3,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'内野アタック2人×ディフェンス5〜6人で2チーム編成',note:'大会前の場合、突き指・ヘッドアタックなど怪我に注意',tech:['アタック'],pos:['内野','外野'],level:['全員'],period:['通常'],sets:4,setTime:2,video:''},
+ {id:11,cat:'実戦',name:'パス連携（2チームに分け）',time:10,load:2,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'内野アタック1人・外野1人・ディフェンス5〜6人で2チーム',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野','審判'],level:['全員'],period:['通常','大会前'],sets:4,setTime:2,video:''},
+ {id:12,cat:'実戦',name:'パス連携（1チームで）',time:15,load:2,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'内野アタック1人・外野1人・ディフェンス10人前後',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野','審判'],level:['全員'],period:['通常','大会前'],sets:15,setTime:1,video:''},
+ {id:13,cat:'実戦',name:'外野サイドパス連携練習',time:15,load:2,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'内野アタック1人・外野3人・ディフェンス10人前後',note:'サイドの外野立ち位置確認、ハンドキャッチでの投球方法、ボディーキャッチ時での投球方法',tech:['アタック','ディフェンス'],pos:['内野','外野','審判'],level:['全員'],period:['通常','大会前'],sets:15,setTime:1,video:''},
+ {id:14,cat:'実戦',name:'全員ターン練習（投球なし）',time:15,load:3,risk:1,heat:true,water:'推奨',coachesNeeded:2,kidsOnly:false,purpose:'ボールの方向に適したターンの連携・下半身強化',note:'ターンでのばらけ具合修正',tech:['ディフェンス'],pos:['内野','ディフェンス'],level:['全員'],period:['通常','大会前'],sets:5,setTime:3,video:''},
+ {id:15,cat:'実戦',name:'全員ターン練習（投球あり）',time:15,load:3,risk:2,heat:true,water:'推奨',coachesNeeded:2,kidsOnly:false,purpose:'ターンの連携・下半身強化',note:'',tech:['ディフェンス'],pos:['内野','ディフェンス'],level:['全員'],period:['通常','大会前'],sets:5,setTime:3,video:''},
+ {id:16,cat:'実戦',name:'模擬試合',time:15,load:3,risk:3,heat:false,water:'推奨',coachesNeeded:6,kidsOnly:false,purpose:'選手・審判のステップアップのための実戦形式。U15がいればそのまま試合へ、いない場合は2チーム編成',note:'突き指・顔面への当たりに注意',tech:['アタック','ディフェンス'],pos:['内野','外野','審判'],level:['全員'],period:['通常','大会前'],sets:3,setTime:5,video:''},
+ {id:17,cat:'測定',name:'スピードガン測定',time:15,load:1,risk:1,heat:false,water:'',coachesNeeded:2,kidsOnly:false,purpose:'スピードガンを用意。球速のランク付けはせず、過去データからの伸び率を重視',note:'',tech:['アタック'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:18,cat:'測定',name:'20m走測定',time:10,load:3,risk:1,heat:false,water:'',coachesNeeded:2,kidsOnly:false,purpose:'ストップウォッチを用意',note:'小学校の体力テスト対策も兼ねて',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:19,cat:'測定',name:'垂直跳び測定',time:10,load:2,risk:1,heat:false,water:'',coachesNeeded:2,kidsOnly:false,purpose:'体育館に設備あり',note:'小学校の体力テスト対策も兼ねて',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:20,cat:'測定',name:'反復横跳び測定',time:10,load:3,risk:1,heat:true,water:'',coachesNeeded:2,kidsOnly:false,purpose:'ストップウォッチを用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:21,cat:'測定',name:'立ち幅跳び測定',time:10,load:1,risk:1,heat:true,water:'',coachesNeeded:2,kidsOnly:false,purpose:'メジャーを用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:22,cat:'測定',name:'シャトルラン測定',time:15,load:3,risk:1,heat:true,water:'推奨',coachesNeeded:2,kidsOnly:false,purpose:'ストップウォッチ・シャトルラン用音源を用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:23,cat:'レク',name:'コート1周リレー',time:10,load:3,risk:2,heat:true,water:'推奨',coachesNeeded:1,kidsOnly:false,purpose:'大会後・少人数・寒い日などに',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:24,cat:'筋トレ',name:'ラダー',time:10,load:2,risk:1,heat:true,water:'推奨',coachesNeeded:1,kidsOnly:false,purpose:'大会後・少人数・寒い日などに',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:25,cat:'筋トレ',name:'ランジウォーク',time:10,load:3,risk:1,heat:true,water:'推奨',coachesNeeded:1,kidsOnly:false,purpose:'大会後・少人数・寒い日などに',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:[],sets:0,setTime:0,video:''},
+];
+
+const CAT_COLORS={'基本':'#3498db','実戦':'#e74c3c','測定':'#9b59b6','レク':'#27ae60','筋トレ':'#f39c12','アップ':'#1abc9c'};
+const WATER_BREAK={id:'water',name:'💧 給水タイム',time:3,isWater:true};
+const TARGET_MIN=180,TARGET_MAX=210;
+
+const EXCLUDE_REC_CATS = new Set(['レク','測定','筋トレ']);
+const COMPETITIVE_FOCUSES = new Set(['balanced','attack','defense','team']);
+
+// ========== TEMPLATE DEFINITIONS ==========
+// fixedStart: 固定で前に入れるメニューID（順序通り）
+// fixedEnd:   固定で後ろに入れるメニューID（順序通り）
+// middleIds:  固定で中間に入れたいメニューID（任意）
+// excludeRec: レク・測定・筋トレ除外
+// ★ここを編集してテンプレの内容をカスタマイズ★
+const TEMPLATES=[
+ {
+  name:'通常練習', icon:'🏐', desc:'バランス良く全体練習',
+  focus:'balanced', period:'normal', heat:false, excludeRec:true,
+  fixedStart:[1,2,3],   // キャッチボール→ワンバン→ノーバン
+  middleIds:[5,11,14],  // 2×2ワンバン、パス連携(外野1)、ターン(投球なし)
+  fixedEnd:[16],        // 模擬試合
+ },
+ {
+  name:'アタック強化', icon:'💥', desc:'投球系メニュー重点',
+  focus:'attack', period:'normal', heat:false, excludeRec:true,
+  fixedStart:[1,2,3],
+  middleIds:[4,6,9,10], // 遠投、2×2ノーバン、ハンドキャッチ、ワンゲット
+  fixedEnd:[16],
+ },
+ {
+  name:'ディフェンス強化', icon:'🛡', desc:'守備系メニュー重点',
+  focus:'defense', period:'normal', heat:false, excludeRec:true,
+  fixedStart:[1,2,3],
+  middleIds:[7,8,14,15], // ゴロキャッチ、ボディキャッチ、ターン×2
+  fixedEnd:[16],
+ },
+ {
+  name:'連携強化', icon:'🤝', desc:'チーム連携メニュー',
+  focus:'team', period:'normal', heat:false, excludeRec:true,
+  fixedStart:[1,2,3],
+  middleIds:[11,12,13], // パス連携×3種
+  fixedEnd:[16],
+ },
+ {
+  name:'大会前', icon:'🏆', desc:'怪我リスクを抑えた',
+  focus:'balanced', period:'pre', heat:false, excludeRec:true,
+  fixedStart:[1,2,3],
+  middleIds:[5,11,13],
+  fixedEnd:[16],
+ },
+ {
+  name:'大会後', icon:'🎉', desc:'測定・レク中心',
+  focus:'fun', period:'post', heat:false, excludeRec:false,
+  fixedStart:[1,2,3],
+  middleIds:[17,18,23], // スピードガン、20m走、リレー
+  fixedEnd:[16],
+ },
+ {
+  name:'猛暑日', icon:'🌡️', desc:'低負荷・給水重視',
+  focus:'balanced', period:'normal', heat:true, excludeRec:true,
+  fixedStart:[1,2,3],
+  middleIds:[7,8,11],
+  fixedEnd:[16],
+ },
+ {
+  name:'少人数', icon:'👥', desc:'少ない人数で実施',
+  focus:'balanced', period:'normal', heat:false, fewCoaches:true, excludeRec:true,
+  fixedStart:[1,2,3],
+  middleIds:[5,10,11],
+  fixedEnd:[16],
+ },
+ {
+  name:'レク中心', icon:'😄', desc:'楽しさ優先',
+  focus:'fun', period:'normal', heat:false, excludeRec:false,
+  fixedStart:[1,2,3],
+  middleIds:[23,24,25], // リレー、ラダー、ランジウォーク
+  fixedEnd:[16],
+ },
+ {
+  name:'大人少なめ', icon:'🧒', desc:'子供のみ実施可',
+  focus:'balanced', period:'normal', heat:false, kidsOnly:true, excludeRec:true,
+  fixedStart:[1,2,3],
+  middleIds:[5,6,10,11],
+  fixedEnd:[16],
+ },
+];
+
+// ========== STATE ==========
+let todayMenus=[];
+let condTemp='normal';
+let analysisPeriod=30;
+let calYear,calMonth;
+let dragSrcIdx=null;
+
+function getMenus(){
+  const stored=localStorage.getItem('db_menus');
+  return stored?[...MASTER_MENUS,...JSON.parse(stored)]:[...MASTER_MENUS];
+}
+function getHistory(){return JSON.parse(localStorage.getItem('practice_history')||'[]');}
+function saveHistory(h){localStorage.setItem('practice_history',JSON.stringify(h));}
+
+// ========== INIT ==========
+window.addEventListener('load',()=>{
+  const n=new Date();
+  calYear=n.getFullYear();calMonth=n.getMonth();
+  document.getElementById('todayDateNav').textContent=`${n.getMonth()+1}/${n.getDate()}（${['日','月','火','水','木','金','土'][n.getDay()]}）`;
+  buildCatFilters();renderMenuList();buildTemplates();
+  renderHistory();renderCalendar();renderAnalysis();
+  loadTodayDraft();
+});
+
+// ========== NAV ==========
+function showScreen(name,btn){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='history'){renderHistory();renderCalendar();renderAnalysis();}
+  if(name==='today'){
+    // 常に手動タブをアクティブにして追加メニューが見えるようにする
+    document.querySelectorAll('#screen-today .tab-panel').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('#screen-today .tab-item').forEach(t=>t.classList.remove('active'));
+    document.getElementById('tab-today-manual').classList.add('active');
+    document.querySelectorAll('#screen-today .tab-item')[0].classList.add('active');
+    renderTodayList();
+  }
+}
+function switchTab(screen,tab,el){
+  document.querySelectorAll('#screen-'+screen+' .tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#screen-'+screen+' .tab-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+screen+'-'+tab).classList.add('active');
+  if(el)el.classList.add('active');
+}
+
+// ========== MENU DB ==========
+let activeFilter='all';
+function buildCatFilters(){
+  const cats=['all',...new Set(getMenus().map(m=>m.cat.trim()))];
+  document.getElementById('catFilters').innerHTML=cats.map(c=>`<button class="filter-chip ${c==='all'?'active':''}" onclick="setCatFilter('${c}',this)">${c==='all'?'すべて':c}</button>`).join('');
+}
+function setCatFilter(cat,btn){
+  activeFilter=cat;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  btn.classList.add('active');filterMenus();
+}
+function filterMenus(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  const all=getMenus();
+  const filtered=all.filter(m=>{
+    const cm=activeFilter==='all'||m.cat.trim()===activeFilter;
+    const tm=!q||m.name.toLowerCase().includes(q)||(m.purpose||'').toLowerCase().includes(q)||m.tech.join('').toLowerCase().includes(q);
+    return cm&&tm;
+  });
+  document.getElementById('resultCount').textContent=`${filtered.length}件のメニュー`;
+  renderMenuList(filtered);
+}
+function renderMenuList(menus){
+  if(!menus)menus=getMenus();
+  const c=document.getElementById('menuList');
+  if(!menus.length){c.innerHTML='<div class="empty-state"><div class="icon">🔍</div><p>該当するメニューがありません</p></div>';return;}
+  c.innerHTML=menus.map(m=>`
+    <div class="menu-card" onclick="showDetail(${m.id})">
+      <div class="cat-dot" style="background:${CAT_COLORS[m.cat.trim()]||'#888'}"></div>
+      <div class="info">
+        <div class="name">${m.name}</div>
+        <div class="meta"><span>⏱ ${m.setTime>0?m.setTime:m.time}分／1セット</span>${m.sets>1?`<span style="font-size:13px;color:var(--text-muted)">× ${m.sets}セット</span>`:''} ${m.dist?`<span style="font-size:15px;color:#2456a0;background:#e0e8ff;padding:2px 7px;border-radius:20px;font-weight:500">📏 ${m.dist}</span>`:''}<span class="tag tag-load-${m.load}">負荷${m.load}</span><span class="tag tag-risk-${m.risk}">リスク${m.risk}</span>${m.heat?'<span class="heat-badge">🌡猛暑注意</span>':''}${m.water==='推奨'?'<span class="water-badge">💧給水推奨</span>':''}</div>
+        <div class="tags"><span class="tag tag-cat">${m.cat.trim()}</span>${m.tech.map(t=>`<span class="tag tag-tech">${t}</span>`).join('')}</div>
+      </div>
+      <div><button class="btn-add-menu" onclick="addToToday(${m.id},event)" title="今日の練習に追加">＋</button></div>
+    </div>`).join('');
+  document.getElementById('resultCount').textContent=`${menus.length}件のメニュー`;
+}
+
+// ========== DETAIL MODAL ==========
+function showDetail(id){
+  const m=getMenus().find(x=>x.id===id);if(!m)return;
+  const color=CAT_COLORS[m.cat.trim()]||'#888';
+  const videoURL=m.video&&m.video.length>10?m.video:'';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="modal-header">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="width:5px;height:44px;background:${color};border-radius:3px;flex-shrink:0"></div>
+        <div><h2>${m.name}</h2><div style="font-size:14px;color:var(--text-muted)">${m.cat.trim()} | ⏱ ${m.setTime>0?m.setTime:m.time}分／1セット${m.sets>1?' × '+m.sets+'セット':''}</div></div>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="tag tag-load-${m.load}">練習負荷: ${['','低','中','高'][m.load]}</span>
+        <span class="tag tag-risk-${m.risk}">怪我リスク: ${['','低','中','高'][m.risk]}</span>
+        ${m.heat?'<span class="heat-badge">🌡猛暑日注意</span>':''}
+        ${m.water==='推奨'?'<span class="water-badge">💧給水推奨</span>':''}
+        ${m.kidsOnly?'<span class="tag" style="background:#f0f0ff;color:#5558a0">子供のみ可</span>':''}
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="section-title" style="margin-bottom:8px">🎯 目的・練習方法</div>
+      <p style="font-size:15px;line-height:1.8;color:var(--text);margin-bottom:14px">${m.purpose||'—'}</p>
+      ${m.note?`<div class="alert alert-warning" style="margin-bottom:14px">⚠️ <strong>備考・注意事項：</strong><br>${m.note}</div>`:''}
+      <div class="section-title" style="margin-bottom:8px">📊 詳細情報</div>
+      <div class="detail-row"><span class="dl">セット構成</span><span class="dv">${m.sets>0?`${m.setTime}分 × ${m.sets}セット`:'—'}</span></div>
+      ${m.dist?`<div class="detail-row"><span class="dl">📏 距離</span><span class="dv" style="color:#2456a0;font-weight:700">${m.dist}</span></div>`:''}
+      <div class="detail-row"><span class="dl">コーチ必要人数</span><span class="dv">${m.coachesNeeded}人</span></div>
+      <div class="detail-row"><span class="dl">対象ポジション</span><span class="dv">${m.pos.join('・')}</span></div>
+      <div class="detail-row"><span class="dl">技術タグ</span><span class="dv">${m.tech.join('・')}</span></div>
+      <div class="detail-row"><span class="dl">対象レベル</span><span class="dv">${m.level.join('・')}</span></div>
+      <div class="detail-row"><span class="dl">時期タグ</span><span class="dv">${m.period.join('・')||'—'}</span></div>
+      ${videoURL?`<a class="video-link" href="${videoURL}" target="_blank">▶️ 動画を見る（YouTube）</a>`:`<div style="margin-top:12px;padding:10px 12px;background:#f9fafb;border-radius:var(--radius-sm);font-size:14px;color:var(--text-muted);text-align:center">📹 動画準備中</div>`}
+      <div style="margin-top:16px"><button class="btn-primary" onclick="addToToday(${m.id},null);closeDetailModal()">＋ 今日の練習に追加</button></div>
+    </div>`;
+  document.getElementById('detailModal').classList.add('open');
+}
+function closeDetailModal(){document.getElementById('detailModal').classList.remove('open');}
+function closeModalOutside(e){if(e.target===document.getElementById('detailModal'))closeDetailModal();}
+
+// ========== TODAY ==========
+function addToToday(id,evt){
+  if(evt)evt.stopPropagation();
+  const m=getMenus().find(x=>x.id===id);if(!m)return;
+  const st = m.setTime||m.time||5;
+  const sc = m.sets||1;
+  todayMenus.push({...m, setTime:st, sets:sc, time:st*sc, uid:Date.now()+Math.random()});
+  saveTodayDraft();renderTodayList();
+  if(evt){const b=evt.target;b.textContent='✓';b.style.background='#16a34a';setTimeout(()=>{b.textContent='＋';b.style.background='';},800);}
+}
+function removeFromToday(uid){
+  todayMenus=todayMenus.filter(m=>m.uid!==uid);
+  saveTodayDraft();renderTodayList();
+}
+function addWaterBreak(){
+  if(todayMenus.length===0){
+    // No menus yet → just append
+    todayMenus.push({...WATER_BREAK,uid:Date.now()+Math.random()});
+    saveTodayDraft();renderTodayList();
+    return;
+  }
+  // Show position picker modal
+  const list=document.getElementById('waterPositionList');
+  let html='';
+  // "最初に入れる" option
+  html+=`<div class="water-pos-item" onclick="insertWaterAt(0)">
+    <span class="water-pos-arrow">↓</span>
+    <span class="water-pos-label">⬆ 一番最初に追加</span>
+  </div>`;
+  todayMenus.forEach((m,i)=>{
+    const label=m.isWater?'💧 給水タイム':m.name;
+    const cat=m.isWater?'':`<span class="tag tag-cat" style="font-size:15px;margin-left:6px">${m.cat.trim()}</span>`;
+    html+=`<div class="water-pos-item water-pos-after" onclick="insertWaterAt(${i+1})">
+      <div class="water-pos-menu">${label}${cat}</div>
+      <div class="water-pos-insert">💧 ここに給水を追加 ↓</div>
+    </div>`;
+  });
+  list.innerHTML=html;
+  document.getElementById('waterModal').classList.add('open');
+}
+function insertWaterAt(idx){
+  todayMenus.splice(idx,0,{...WATER_BREAK,uid:Date.now()+Math.random()});
+  saveTodayDraft();renderTodayList();
+  closeWaterModal();
+}
+function closeWaterModal(){document.getElementById('waterModal').classList.remove('open');}
+function closeWaterModalOutside(e){if(e.target===document.getElementById('waterModal'))closeWaterModal();}
+function updateSetTime(uid, val){
+  const m = todayMenus.find(x => x.uid === uid);
+  if(!m) return;
+  m.setTime = Math.max(1, parseInt(val)||1);
+  m.time = m.setTime * (m.sets||1);
+  saveTodayDraft();
+  // update total display inline without full re-render
+  const el = document.getElementById('total-'+uid);
+  if(el) el.textContent = m.time + '分';
+  renderTodayTimeSummary();
+}
+function updateSets(uid, val){
+  const m = todayMenus.find(x => x.uid === uid);
+  if(!m) return;
+  m.sets = Math.max(1, parseInt(val)||1);
+  m.time = (m.setTime||m.time) * m.sets;
+  saveTodayDraft();
+  const el = document.getElementById('total-'+uid);
+  if(el) el.textContent = m.time + '分';
+  renderTodayTimeSummary();
+}
+
+function renderTodayTimeSummary(){
+  const t=calcTotalTime();
+  document.getElementById('totalTime').textContent=t+' 分';
+  const count=todayMenus.filter(m=>!m.isWater).length;
+  document.getElementById('menuCount').textContent=count+' 件';
+}
+
+function calcTotalTime(){
+  return todayMenus.reduce((s,m)=>s+(parseInt(m.time)||0),0);
+}
+
+function renderTodayList(){
+  renderTodayTimeSummary();
+  const c=document.getElementById('todayList');
+  if(!todayMenus.length){
+    c.innerHTML='<div class="empty-state"><div class="icon">🏐</div><p>まだメニューがありません。<br>「練習メニュー一覧」からタップで追加！</p></div>';
+    return;
+  }
+  let num=0;
+  c.innerHTML=todayMenus.map((m,i)=>{
+    if(m.isWater){
+      return `<div class="water-item" data-idx="${i}">
+        <span class="drag-handle" style="background:rgba(2,132,199,0.12);color:#0369a1"
+          onmousedown="handleMouseDown(event,${i})"
+          ontouchstart="touchStart(event,${i})" ontouchmove="touchMove(event)" ontouchend="touchEnd(event,${i})">⠿</span>
+        💧 給水タイム
+        <input class="item-time-input" type="number" value="${m.time}" min="1" max="30"
+          onchange="updateItemTime(${m.uid},this.value)" onclick="event.stopPropagation()" style="margin-left:4px">
+        <span style="font-size:14px;color:var(--text-muted)">分</span>
+        <button class="del-btn" onclick="removeFromToday(${m.uid})" style="margin-left:auto">✕</button>
+      </div>`;
+    }
+    num++;
+    const st = m.setTime||m.time||0;
+    const sc = m.sets||1;
+    const total = st * sc;
+    return `<div class="today-item" data-idx="${i}"
+      ondragover="dragOver(event,${i})" ondrop="dragDrop(event,${i})" ondragend="dragEnd(event)">
+      <span class="drag-handle"
+        onmousedown="handleMouseDown(event,${i})"
+        ontouchstart="touchStart(event,${i})" ontouchmove="touchMove(event)" ontouchend="touchEnd(event,${i})">⠿</span>
+      <div class="item-num">${num}</div>
+      <div class="item-info" onclick="showDetailInToday(${m.id})">
+        <div class="item-name">${m.name}</div>
+        <div class="item-meta" style="margin-top:4px">
+          <span class="tag tag-cat" style="font-size:13px">${m.cat.trim()}</span>
+          ${m.dist?`<span style="font-size:13px;color:#2456a0;background:#e0e8ff;padding:2px 6px;border-radius:20px;font-weight:500">📏 ${m.dist}</span>`:''}
+        </div>
+        <div class="item-meta" style="margin-top:6px;gap:4px" onclick="event.stopPropagation()">
+          <span style="font-size:13px;color:var(--text-muted)">⏱</span>
+          <input class="item-time-input" type="number" value="${st}" min="1" max="120"
+            onchange="updateSetTime(${m.uid},this.value)" title="1セットの時間（分）">
+          <span style="font-size:13px;color:var(--text-muted)">分</span>
+          <span style="font-size:13px;color:var(--text-muted);margin:0 2px">×</span>
+          <input class="item-sets-input" type="number" value="${sc}" min="1" max="20"
+            onchange="updateSets(${m.uid},this.value)" title="セット数">
+          <span style="font-size:13px;color:var(--text-muted)">セット</span>
+          <span style="font-size:13px;color:var(--text-muted)">＝</span>
+          <span class="item-total-time" id="total-${m.uid}">${total}分</span>
+        </div>
+      </div>
+      <button class="del-btn" onclick="removeFromToday(${m.uid})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function showDetailInToday(id){showDetail(id);}
+
+// ========== DRAG & DROP ==========
+// Mouse: drag starts only when handle is grabbed
+function handleMouseDown(e, idx) {
+  e.stopPropagation();
+  const item = e.currentTarget.closest('.today-item, .water-item');
+  if (!item) return;
+  item.setAttribute('draggable', 'true');
+  dragSrcIdx = idx;
+  // Remove draggable after mouseup anywhere
+  const cleanup = () => {
+    item.removeAttribute('draggable');
+    document.removeEventListener('mouseup', cleanup);
+  };
+  document.addEventListener('mouseup', cleanup);
+  // Bind drag events directly
+  item.ondragstart = (ev) => {
+    dragSrcIdx = idx;
+    item.classList.add('dragging');
+    ev.dataTransfer.effectAllowed = 'move';
+  };
+}
+function dragOver(e, idx) {
+  e.preventDefault();
+  document.querySelectorAll('.today-item,.water-item').forEach(el => el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+function dragDrop(e, idx) {
+  e.preventDefault();
+  if (dragSrcIdx === null || dragSrcIdx === idx) return;
+  const moved = todayMenus.splice(dragSrcIdx, 1)[0];
+  todayMenus.splice(idx, 0, moved);
+  dragSrcIdx = null;
+  saveTodayDraft(); renderTodayList();
+}
+function dragEnd(e) {
+  document.querySelectorAll('.today-item,.water-item').forEach(el => {
+    el.classList.remove('dragging', 'drag-over');
+    el.removeAttribute('draggable');
+  });
+  dragSrcIdx = null;
+}
+
+// Touch drag (handle-initiated)
+let touchSrcIdx = null, touchClone = null, touchOffX = 0, touchOffY = 0;
+function touchStart(e, idx) {
+  e.stopPropagation();
+  touchSrcIdx = idx;
+  const el = e.currentTarget.closest('.today-item, .water-item');
+  if (!el) return;
+  const r = el.getBoundingClientRect();
+  touchOffX = e.touches[0].clientX - r.left;
+  touchOffY = e.touches[0].clientY - r.top;
+  touchClone = el.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;opacity:.75;pointer-events:none;z-index:999;box-shadow:0 8px 20px rgba(0,0,0,.2);border-radius:10px;`;
+  document.body.appendChild(touchClone);
+  el.style.opacity = '0.3';
+}
+function touchMove(e) {
+  if (!touchClone) return;
+  e.preventDefault();
+  const x = e.touches[0].clientX - touchOffX;
+  const y = e.touches[0].clientY - touchOffY;
+  touchClone.style.left = x + 'px';
+  touchClone.style.top = y + 'px';
+  document.querySelectorAll('.today-item,.water-item').forEach(el => el.classList.remove('drag-over'));
+  const target = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+  const item = target && target.closest('.today-item, .water-item');
+  if (item) item.classList.add('drag-over');
+}
+function touchEnd(e, srcIdx) {
+  if (touchClone) { touchClone.remove(); touchClone = null; }
+  document.querySelectorAll('.today-item,.water-item').forEach(el => { el.style.opacity = ''; el.classList.remove('drag-over'); });
+  const target = document.elementFromPoint(e.changedTouches[0].clientX, e.changedTouches[0].clientY);
+  const item = target && target.closest('.today-item, .water-item');
+  if (item) {
+    const destIdx = parseInt(item.dataset.idx);
+    if (!isNaN(destIdx) && destIdx !== srcIdx) {
+      const moved = todayMenus.splice(srcIdx, 1)[0];
+      todayMenus.splice(destIdx, 0, moved);
+      saveTodayDraft(); renderTodayList();
+    }
+  }
+  touchSrcIdx = null;
+}
+
+// ========== BUILD MENU (shared logic) ==========
+function buildPracticeMenu({period='normal',focus='balanced',heat=false,kidsOnly=false,fewCoaches=false,coaches=3,excludeRec=false,fixedStart=[],middleIds=[],fixedEnd=[]}={}){
+  const all=getMenus();
+
+  // helper: normalize time fields
+  const norm=(m,uid)=>{
+    const st=m.setTime||m.time||5;
+    const sc=m.sets||1;
+    return {...m,setTime:st,sets:sc,time:st*sc,uid};
+  };
+
+  // IDセットで重複チェック用
+  const usedIds=new Set();
+
+  // ① fixedStart（必ず先頭に、順序通り）
+  const startMenus=fixedStart.map(id=>{
+    const m=all.find(x=>x.id===id);
+    if(!m)return null;
+    usedIds.add(id);
+    return norm(m,Date.now()+Math.random());
+  }).filter(Boolean);
+
+  // ② fixedEnd（必ず末尾に、順序通り）
+  const endMenus=fixedEnd.map(id=>{
+    const m=all.find(x=>x.id===id);
+    if(!m)return null;
+    usedIds.add(id);
+    return norm(m,Date.now()+Math.random());
+  }).filter(Boolean);
+
+  // ③ middleIds（固定中間メニュー）
+  const middleMenus=middleIds.map(id=>{
+    const m=all.find(x=>x.id===id);
+    if(!m||usedIds.has(id))return null;
+    usedIds.add(id);
+    return norm(m,Date.now()+Math.random());
+  }).filter(Boolean);
+
+  // ④ 残りの自動選択（時間埋め）
+  let pool=all.filter(m=>{
+    if(usedIds.has(m.id))return false;
+    if(m.cat.trim()==='基本')return false;   // 基本は fixedStart で完結
+    if(heat&&m.heat)return false;
+    if(kidsOnly&&!m.kidsOnly)return false;
+    if(fewCoaches&&m.coachesNeeded>1)return false;
+    if(!fewCoaches&&m.coachesNeeded>coaches)return false;
+    if((period==='pre'||period==='prematch')&&m.risk>=3)return false;
+    if(excludeRec&&EXCLUDE_REC_CATS.has(m.cat.trim()))return false;
+    return true;
+  });
+
+  pool=pool.map(m=>{
+    let s=10;
+    if(focus==='attack'&&m.tech.includes('アタック'))s+=5;
+    if(focus==='defense'&&m.tech.includes('ディフェンス'))s+=5;
+    if(focus==='team'&&m.cat==='実戦')s+=5;
+    if(focus==='fun'&&(m.cat==='レク'||m.cat==='測定'))s+=6;
+    if(period==='pre'&&m.period.includes('大会前'))s+=3;
+    if(period==='post'&&(m.period.includes('大会後')||m.period.includes('余裕日')))s+=4;
+    if(heat&&m.load<=1)s+=3;
+    s+=Math.random()*2;
+    return {...m,score:s};
+  });
+  pool.sort((a,b)=>b.score-a.score);
+
+  // 固定メニューの合計時間を先に計算
+  const fixedTotal=[...startMenus,...middleMenus,...endMenus]
+    .reduce((s,m)=>s+(m.time||0),0);
+  const maxNoWater=heat?140:165;
+  const fillBudget=Math.max(0,maxNoWater-fixedTotal);
+
+  // 空き時間をプールから埋める
+  const fillMenus=[];
+  const catUsed={};
+  let fillTotal=0;
+  for(const m of pool){
+    if(fillTotal>=fillBudget)break;
+    const cat=m.cat.trim();
+    catUsed[cat]=(catUsed[cat]||0);
+    if(catUsed[cat]>=2)continue;
+    const st=m.setTime||m.time||5,sc=m.sets||1,t=st*sc;
+    if(fillTotal+t<=fillBudget){
+      fillMenus.push(norm(m,Date.now()+Math.random()));
+      fillTotal+=t;
+      catUsed[cat]++;
+    }
+  }
+
+  // 組み合わせ: 先頭固定 → 中間固定 → 自動補完 → 末尾固定
+  const middle=[...middleMenus,...fillMenus];
+  const combined=[...startMenus,...middle];
+
+  // 給水挿入（末尾固定の前まで）
+  const withWater=insertWaterBreaks(combined,heat);
+
+  // 末尾固定を追加
+  withWater.push(...endMenus);
+
+  return withWater;
+}
+
+function insertWaterBreaks(menus,heat){
+  const result=[];
+  let elapsed=0;
+  let lastWaterAt=0;
+  const timeInterval=heat?20:35; // 実戦以外の長い区間でも時間ベースで給水
+
+  for(let i=0;i<menus.length;i++){
+    const m=menus[i];
+    result.push(m);
+    elapsed+=m.time||0;
+
+    const isJissen=(m.cat||'').trim()==='実戦';
+    const nextIsJissen=i+1<menus.length&&(menus[i+1].cat||'').trim()==='実戦';
+    const nextIsWater=i+1<menus.length&&menus[i+1].isWater;
+    const isLast=i===menus.length-1;
+
+    if(nextIsWater||isLast)continue; // すでに給水が続く or 最後
+
+    if(isJissen){
+      // 実戦の直後は必ず給水
+      result.push({...WATER_BREAK,uid:Date.now()+Math.random()+i});
+      lastWaterAt=elapsed;
+    } else if(elapsed-lastWaterAt>=timeInterval){
+      // 実戦以外でも一定時間経過で給水
+      result.push({...WATER_BREAK,uid:Date.now()+Math.random()+i});
+      lastWaterAt=elapsed;
+    }
+  }
+  return result;
+}
+
+function totalWithWater(menus){
+  return menus.reduce((s,m)=>s+(parseInt(m.time)||0),0);
+}
+
+// ========== SAVE / LOAD ==========
+function saveTodayDraft(){localStorage.setItem('today_draft',JSON.stringify(todayMenus));}
+function loadTodayDraft(){
+  const d=localStorage.getItem('today_draft');
+  if(d){try{todayMenus=JSON.parse(d);}catch(e){todayMenus=[];}}
+  renderTodayList();
+}
+function saveTodayPractice(){
+  const realMenus=todayMenus.filter(m=>!m.isWater);
+  if(!realMenus.length){alert('メニューを1件以上追加してください');return;}
+  const n=new Date();
+  const dateStr=n.toISOString().split('T')[0];
+  const hist=getHistory();
+  const total=calcTotalTime();
+  const comment=document.getElementById('coachComment').value.trim();
+  hist.unshift({
+    date:dateStr,
+    menus:realMenus.map(m=>({id:m.id,name:m.name,cat:m.cat,time:m.time,tech:m.tech||[],load:m.load,pos:m.pos||[]})),
+    totalTime:total,
+    comment,
+    savedAt:n.toISOString()
+  });
+  saveHistory(hist);
+  localStorage.removeItem('today_draft');
+  todayMenus=[];
+  document.getElementById('coachComment').value='';
+  renderTodayList();
+  alert(`✅ ${dateStr} の練習を保存しました！\n合計: ${total}分 / ${realMenus.length}メニュー${comment?'\nコメント: '+comment.slice(0,30):''}`)
+}
+
+// ========== TEMPLATES ==========
+function buildTemplates(){
+  document.getElementById('templateGrid').innerHTML=TEMPLATES.map((t,i)=>
+    `<div class="template-card" onclick="applyTemplate(${i})"><div class="t-icon">${t.icon}</div><div class="t-name">${t.name}</div><div class="t-desc">${t.desc}</div></div>`
+  ).join('');
+}
+function applyTemplate(idx){
+  const t=TEMPLATES[idx];
+  const menus=buildPracticeMenu({
+    period:t.period, focus:t.focus, heat:t.heat,
+    kidsOnly:!!t.kidsOnly, fewCoaches:!!t.fewCoaches, coaches:3,
+    excludeRec:!!t.excludeRec,
+    fixedStart:t.fixedStart||[], middleIds:t.middleIds||[], fixedEnd:t.fixedEnd||[16],
+  });
+  todayMenus=menus;
+  saveTodayDraft();renderTodayList();
+  // Switch to manual tab
+  switchTab('today','manual',document.querySelectorAll('#screen-today .tab-item')[0]);
+  document.querySelectorAll('#screen-today .tab-item').forEach((el,i)=>el.classList.toggle('active',i===0));
+  const total=totalWithWater(menus);
+  alert(`✅「${t.name}」テンプレートを適用しました\n${menus.filter(m=>!m.isWater).length}メニュー + 給水タイム込み 合計 ${total}分`);
+}
+
+// ========== AUTO SUGGEST ==========
+function setTemp(v){
+  condTemp=v;
+  ['normal','hot','cold'].forEach(k=>document.getElementById('temp-'+k).classList.toggle('active',k===v));
+}
+function generateSuggestion(){
+  const kids=parseInt(document.getElementById('cond-kids').value)||15;
+  const coaches=parseInt(document.getElementById('cond-coaches').value)||3;
+  const period=document.getElementById('cond-period').value;
+  const focus=document.getElementById('cond-focus').value;
+  const heat=condTemp==='hot';
+
+  const menus=buildPracticeMenu({period,focus,heat,coaches,kidsOnly:false,fewCoaches:kids<=8,excludeRec:COMPETITIVE_FOCUSES.has(focus)&&period!=='post',fixedStart:[1,2,3],middleIds:[],fixedEnd:[16]});
+  const total=totalWithWater(menus);
+
+  const warnings=[];
+  if(heat)warnings.push('🌡️ 猛暑日：給水タイムを自動挿入しました（約20分ごと）');
+  if(period==='pre')warnings.push('🏆 大会前：怪我リスク高いメニューを除外しました');
+  if(period==='prematch')warnings.push('🏆 大会直前：最終確認・軽め調整で構成しました');
+  if(total<TARGET_MIN)warnings.push(`⏱ 合計${total}分です。手動でメニューを追加して${TARGET_MIN}〜${TARGET_MAX}分に調整できます`);
+
+  const resultDiv=document.getElementById('suggestResult');
+  resultDiv.style.display='block';
+  let num=0;
+  resultDiv.innerHTML=`
+    <div class="suggest-header"><h3>⚡ 自動提案完了</h3><p>${menus.filter(m=>!m.isWater).length}メニュー ＋ 給水タイム込み / 合計 ${total}分</p></div>
+    ${warnings.map(w=>`<div class="alert alert-warning">${w}</div>`).join('')}
+    ${menus.map((m,i)=>{
+      if(m.isWater)return `<div class="water-item">💧 給水タイム <span style="margin-left:auto;font-size:15px">${m.time}分</span></div>`;
+      num++;
+      return `<div class="today-item" style="margin-bottom:8px;cursor:default">
+        <div class="item-num">${num}</div>
+        <div class="item-info"><div class="item-name">${m.name}</div>
+        <div class="item-meta"><span class="tag tag-cat" style="font-size:15px">${m.cat.trim()}</span><span style="margin-left:6px">⏱ ${m.time}分</span></div></div></div>`;
+    }).join('')}
+    <div style="margin-top:16px"><button class="btn-primary" onclick="applySuggested(${JSON.stringify(menus.map(m=>({id:m.id,isWater:m.isWater||false,uid:String(m.uid)})))})">✅ このメニューで練習を組む</button></div>`;
+  resultDiv.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function applySuggested(items){
+  const all=getMenus();
+  todayMenus=items.map((item,i)=>{
+    if(item.isWater)return{...WATER_BREAK,uid:Date.now()+i};
+    const m=all.find(x=>x.id===item.id);
+    return m?{...m,uid:Date.now()+i}:null;
+  }).filter(Boolean);
+  saveTodayDraft();renderTodayList();
+  switchTab('today','manual',null);
+  document.querySelectorAll('#screen-today .tab-item').forEach((el,i)=>el.classList.toggle('active',i===0));
+}
+
+// ========== HISTORY ==========
+function renderHistory(){
+  const hist=getHistory();
+  const c=document.getElementById('historyList');
+  if(!hist.length){c.innerHTML='<div class="empty-state"><div class="icon">📅</div><p>まだ練習履歴がありません</p></div>';return;}
+  const DAY=['日','月','火','水','木','金','土'];
+  c.innerHTML=hist.map((h,i)=>{
+    const d=new Date(h.date+'T00:00:00');
+    const ds=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DAY[d.getDay()]}）`;
+    const names=h.menus.map(m=>m.name).join('、');
+    return `<div class="history-item" onclick="toggleHistDetail(${i})">
+      <div class="history-date">${ds}</div>
+      <div class="history-menus">${names.length>60?names.slice(0,60)+'…':names}</div>
+      <div class="history-stats"><span class="history-stat">⏱ ${h.totalTime}分</span><span class="history-stat">📋 ${h.menus.length}件</span>${h.comment?`<span class="history-stat">💬 ${h.comment.slice(0,20)}…</span>`:''}</div>
+      <div id="hd-${i}" style="display:none;margin-top:10px">
+        ${h.menus.map(m=>`<div style="font-size:14px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span>${m.name}</span><span style="color:var(--text-muted)">${m.time}分</span></div>`).join('')}
+        ${h.comment?`<div style="margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:14px;color:var(--text-muted)">💬 ${h.comment}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleHistDetail(i){const el=document.getElementById('hd-'+i);el.style.display=el.style.display==='none'?'block':'none';}
+
+// ========== CALENDAR ==========
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+function renderCalendar(){
+  const DAY=['日','月','火','水','木','金','土'];
+  const MONTH=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  document.getElementById('calMonthLabel').textContent=`${calYear}年 ${MONTH[calMonth]}`;
+  document.getElementById('calHeader').innerHTML=DAY.map((d,i)=>`<div class="cal-day-name" style="color:${i===0?'#e74c3c':i===6?'#3498db':'var(--text-muted)'}">${d}</div>`).join('');
+
+  const hist=getHistory();
+  const practiceDates=new Set(hist.map(h=>h.date));
+  const today=new Date();
+  const todayStr=today.toISOString().split('T')[0];
+
+  const first=new Date(calYear,calMonth,1).getDay();
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  let cells='';
+  for(let i=0;i<first;i++)cells+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=days;d++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const hasPrac=practiceDates.has(ds);
+    const isToday=ds===todayStr;
+    cells+=`<div class="cal-cell${hasPrac?' has-practice':''}${isToday?' today-cell':''}" ${hasPrac?`onclick="showCalDetail('${ds}')"`:''} title="${ds}">${d}</div>`;
+  }
+  document.getElementById('calGrid').innerHTML=cells;
+  document.getElementById('calDetail').innerHTML='';
+}
+function showCalDetail(dateStr){
+  const hist=getHistory();
+  const h=hist.find(x=>x.date===dateStr);
+  if(!h)return;
+  const d=new Date(dateStr+'T00:00:00');
+  const DAY=['日','月','火','水','木','金','土'];
+  document.getElementById('calDetail').innerHTML=`
+    <div class="card">
+      <div style="font-size:14px;font-weight:700;margin-bottom:8px">${d.getMonth()+1}月${d.getDate()}日（${DAY[d.getDay()]}）の練習</div>
+      ${h.menus.map(m=>`<div style="font-size:15px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span>${m.name}</span><span style="color:var(--text-muted)">${m.time}分</span></div>`).join('')}
+      <div style="margin-top:8px;font-size:14px;color:var(--text-muted)">⏱ 合計${h.totalTime}分 / ${h.menus.length}メニュー</div>
+      ${h.comment?`<div style="margin-top:6px;padding:8px;background:var(--bg);border-radius:6px;font-size:14px;color:var(--text-muted)">💬 ${h.comment}</div>`:''}
+    </div>`;
+}
+
+// ========== ANALYSIS ==========
+function setPeriod(days){
+  analysisPeriod=days;
+  ['30','90','all'].forEach(k=>document.getElementById('period-'+k).classList.toggle('active',(k==='all'&&days===999)||(k===String(days))));
+  renderAnalysis();
+}
+function renderAnalysis(){
+  const allHist=getHistory();
+  const cutoff=new Date();cutoff.setDate(cutoff.getDate()-analysisPeriod);
+  const hist=analysisPeriod===999?allHist:allHist.filter(h=>new Date(h.date)>=cutoff);
+  const c=document.getElementById('analysisContent');
+  if(!hist.length){c.innerHTML='<div class="section"><div class="alert alert-info">この期間の練習記録がありません</div></div>';return;}
+  const all=hist.flatMap(h=>h.menus);
+  const total=all.length||1;
+  const techC={},catC={},posC={};
+  let high=0,match=0,basic=0;
+  all.forEach(m=>{
+    (m.tech||[]).forEach(t=>{techC[t]=(techC[t]||0)+1;});
+    const cat=(m.cat||'').trim();catC[cat]=(catC[cat]||0)+1;
+    (m.pos||[]).forEach(p=>{posC[p]=(posC[p]||0)+1;});
+    if(m.load>=3)high++;
+    if(cat==='実戦')match++;
+    if(cat==='基本')basic++;
+  });
+  const atkP=Math.round((techC['アタック']||0)/total*100);
+  const defP=Math.round((techC['ディフェンス']||0)/total*100);
+  const outP=Math.round((posC['外野']||0)/((posC['外野']||0)+(posC['内野']||0)||1)*100);
+  const highP=Math.round(high/total*100);
+  const matchP=Math.round(match/total*100);
+  const alerts=[];
+  if(outP<25)alerts.push({t:'warning',m:'⚠️ 外野練習が少なめです。外野特化メニューを追加しましょう。'});
+  if(atkP<30)alerts.push({t:'warning',m:'⚠️ アタック練習の割合が低いです。キャッチボールや実戦を増やしましょう。'});
+  if(defP<30)alerts.push({t:'warning',m:'⚠️ ディフェンス練習が不足しています。ターン練習やキャッチ練習を追加しましょう。'});
+  if(matchP<20)alerts.push({t:'info',m:'💡 実戦メニューが少なめです。連携練習・模擬試合を取り入れましょう。'});
+  if(highP>60)alerts.push({t:'warning',m:'⚠️ 高負荷メニューが多め。疲労・怪我のリスクに注意しましょう。'});
+  if(!alerts.length)alerts.push({t:'success',m:'✅ バランスの取れた練習ができています！この調子を維持しましょう。'});
+  c.innerHTML=`
+    <div class="section">${alerts.map(a=>`<div class="alert alert-${a.t}">${a.m}</div>`).join('')}</div>
+    <div style="padding:0 16px 16px">
+      <div class="section-title" style="margin-bottom:12px">技術別比率</div>
+      ${bar('アタック',atkP,'#e74c3c')}${bar('ディフェンス',defP,'#3498db')}${bar('実戦',matchP,'#9b59b6')}${bar('高負荷',highP,'#f39c12')}
+      <div class="section-title" style="margin-bottom:12px;margin-top:16px">ポジション比率</div>
+      ${bar('外野',outP,'#27ae60')}${bar('内野',100-outP,'#1abc9c')}
+      <div class="section-title" style="margin-bottom:12px;margin-top:16px">カテゴリ別実施回数</div>
+      ${Object.entries(catC).sort((a,b)=>b[1]-a[1]).map(([cat,cnt])=>bar(cat,Math.round(cnt/total*100),CAT_COLORS[cat]||'#888',cnt+'回')).join('')}
+      <div style="background:var(--bg);border-radius:6px;padding:10px;font-size:14px;color:var(--text-muted);margin-top:12px">集計: ${hist.length}回の練習 / ${total}メニュー実施</div>
+    </div>`;
+}
+function bar(label,pct,color,extra){
+  return `<div class="bar-group"><div class="bar-label"><span>${label}</span><span style="color:var(--text)">${extra||pct+'%'}</span></div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`;
+}
+
+// ========== SETTINGS ==========
+function addCustomMenu(){
+  const name=document.getElementById('new-name').value.trim();
+  if(!name){alert('メニュー名を入力してください');return;}
+  const stored=JSON.parse(localStorage.getItem('db_menus')||'[]');
+  const newId=2000+stored.length+(Date.now()%1000);
+  stored.push({id:newId,cat:document.getElementById('new-cat').value,name,time:parseInt(document.getElementById('new-time').value)||10,load:parseInt(document.getElementById('new-load').value)||2,risk:parseInt(document.getElementById('new-risk').value)||1,coachesNeeded:parseInt(document.getElementById('new-coaches').value)||1,heat:false,water:'不要',kidsOnly:false,purpose:document.getElementById('new-purpose').value,note:document.getElementById('new-note').value,tech:document.getElementById('new-tech').value.split('、').map(s=>s.trim()).filter(Boolean),pos:['内野','外野'],level:['全員'],period:['通常'],sets:1,setTime:parseInt(document.getElementById('new-time').value)||10,video:document.getElementById('new-video').value.trim()});
+  localStorage.setItem('db_menus',JSON.stringify(stored));
+  ['new-name','new-purpose','new-note','new-tech','new-video'].forEach(id=>document.getElementById(id).value='');
+  buildCatFilters();filterMenus();
+  alert(`✅「${name}」を追加しました！`);
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({history:getHistory(),customMenus:JSON.parse(localStorage.getItem('db_menus')||'[]'),exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`db_practice_${new Date().toISOString().split('T')[0]}.json`;a.click();
+}
+function clearHistory(){if(confirm('練習履歴をすべて削除しますか？')){localStorage.removeItem('practice_history');renderHistory();renderCalendar();renderAnalysis();alert('履歴を削除しました');}}
+</script>
+</body>
+</html>

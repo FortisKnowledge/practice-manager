@@ -189,10 +189,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
     <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
       <div>
         <h1 style="margin-bottom:2px">🏐 今日の練習</h1>
-        <p>3〜3.5時間のメニューを組み立てる</p>
+        <p>3〜3.5時間のメニューを組み立てよう</p>
       </div>
       <div style="display:flex;gap:6px;flex-shrink:0">
-        <button onclick="shareMenuCode()" title="共有コードを出力"
+        <button onclick="shareMenuCode()" title="共有コードを発行"
           style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;white-space:nowrap">
           📤 共有
         </button>
@@ -270,7 +270,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 <!-- SCREEN 3: HISTORY -->
 <div class="screen" id="screen-history">
-  <div class="page-header"><h1>📅 練習履歴・分析</h1><p>過去の練習を振り返り偏りをみつける</p></div>
+  <div class="page-header"><h1>📅 練習履歴・分析</h1><p>過去の練習を振り返り偏りを発見しよう</p></div>
   <div class="tab-bar">
     <div class="tab-item active" onclick="switchTab('hist','cal',this)">カレンダー</div>
     <div class="tab-item" onclick="switchTab('hist','list',this)">履歴一覧</div>
@@ -306,27 +306,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 <!-- SCREEN 4: SETTINGS -->
 <div class="screen" id="screen-settings">
-  <div class="page-header"><h1>⚙️ 設定・メニュー追加</h1><p>独自メニューの追加・管理</p></div>
-  <div class="section">
-    <div class="section-title">新しいメニューを追加</div>
-    <div class="card">
-      <div class="form-group"><label class="form-label">カテゴリ</label><select class="form-select" id="new-cat"><option>基本</option><option>実戦</option><option>測定</option><option>レク</option><option>筋トレ、反応トレ</option><option>アップ</option></select></div>
-      <div class="form-group"><label class="form-label">メニュー名</label><input type="text" class="form-input" id="new-name" placeholder="例：シングルキャッチ練習"></div>
-      <div class="form-group form-row">
-        <div><label class="form-label">所要時間(分)</label><input type="number" class="form-input" id="new-time" value="10" min="1"></div>
-        <div><label class="form-label">練習負荷(1-3)</label><input type="number" class="form-input" id="new-load" value="2" min="1" max="3"></div>
-      </div>
-      <div class="form-group form-row">
-        <div><label class="form-label">怪我リスク(1-3)</label><input type="number" class="form-input" id="new-risk" value="1" min="1" max="3"></div>
-        <div><label class="form-label">大人必要人数</label><input type="number" class="form-input" id="new-coaches" value="1" min="0"></div>
-      </div>
-      <div class="form-group"><label class="form-label">目的・方法</label><textarea class="form-input" id="new-purpose" rows="3" placeholder="メニューの目的や進め方..." style="resize:none"></textarea></div>
-      <div class="form-group"><label class="form-label">備考・注意事項</label><input type="text" class="form-input" id="new-note" placeholder="注意点など"></div>
-      <div class="form-group"><label class="form-label">技術タグ</label><input type="text" class="form-input" id="new-tech" placeholder="例：アタック、ディフェンス"></div>
-      <div class="form-group"><label class="form-label">YouTube動画URL（任意）</label><input type="text" class="form-input" id="new-video" placeholder="https://www.youtube.com/watch?v=..."></div>
-      <button class="btn-primary" onclick="addCustomMenu()">＋ メニューを追加</button>
-    </div>
-  </div>
+  <div class="page-header"><h1>⚙️ 設定</h1><p>データの管理・エクスポート</p></div>
   <div class="section">
     <div class="section-title">データ管理</div>
     <div class="card">
@@ -408,15 +388,15 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <script>
 // ========== MASTER DATA ==========
 const MASTER_MENUS=[
- {id:1,cat:'基本',name:'キャッチボール',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'肩の可動域を広げ、相手の胸に確実に投げるように指導',note:'入団したての子には重点的に',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'https://www.youtube.com/watch?v=v7NU4ZmEmxg&t=95s',dist:'約5m'},
+ {id:1,cat:'基本',name:'キャッチボール',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'肩の可動域を広げ、相手の胸に確実に投げるように指導',note:'入団したての子には重点的に',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約5m'},
  {id:2,cat:'基本',name:'ワンバンキャッチボール',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'相手が取りやすいワンバンの位置へ投げるよう指導',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約10m'},
  {id:3,cat:'基本',name:'ノーバンキャッチボール',time:3,load:1,risk:2,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'ノーバンで相手の胸に届かせるボールコントロールや、身体連動性とコツ。キャッチは基本的にボディーキャッチ',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約10m'},
  {id:4,cat:'基本',name:'キャッチボール遠投',time:3,load:1,risk:1,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'強肩向上、投球に必要な身体の連動性やコツ',note:'コートの長辺（20m）を使用するので連れ添いの子や女の子達に注意喚起',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約20m（コート長辺）'},
  {id:5,cat:'基本',name:'2×2ワンバンキャッチボール',time:10,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'ボールコントロール（どの位置にワンバンさせるか）',note:'セット毎に相手を交代',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:3,setTime:3,video:'',dist:'約10m'},
- {id:6,cat:'基本',name:'2×2ノーバンキャッチボール',time:10,load:1,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'ボールコントロール（相手の胸あたりを狙って投げる）',note:'セット毎に相手を交代',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:3,setTime:3,video:'https://www.youtube.com/shorts/MuyvO08CPnU',dist:'約10m'},
- {id:7,cat:'基本',name:'膝つきゴロキャッチ',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'キャッチの基本',note:'入団したての子には重点的に',tech:['ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'https://www.youtube.com/watch?v=CkQIPdR9UP4&t=88s',dist:'約3〜5m'},
- {id:8,cat:'基本',name:'膝つきボディキャッチ',time:3,load:1,risk:2,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'キャッチの基本の徹底',note:'入団したての子には大人がフォロー',tech:['ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'https://www.youtube.com/shorts/CjlttChFJkI',dist:'約3〜5m'},
- {id:9,cat:'基本',name:'ハンドキャッチ',time:3,load:1,risk:3,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'ハンドキャッチからの投球モーション',note:'入団したての子には大人がフォロー',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:1,setTime:3,video:'https://www.youtube.com/watch?v=b5-EQtkTmys&t=152s',dist:'約5〜8m'},
+ {id:6,cat:'基本',name:'2×2ノーバンキャッチボール',time:10,load:1,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'ボールコントロール（相手の胸あたりを狙って投げる）',note:'セット毎に相手を交代',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:3,setTime:3,video:'',dist:'約10m'},
+ {id:7,cat:'基本',name:'膝つきゴロキャッチ',time:3,load:1,risk:1,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'キャッチの基本',note:'入団したての子には重点的に',tech:['ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約3〜5m'},
+ {id:8,cat:'基本',name:'膝つきボディキャッチ',time:3,load:1,risk:2,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'キャッチの基本の徹底',note:'入団したての子には大人がフォロー',tech:['ディフェンス'],pos:['内野','外野'],level:['全員','初心者'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約3〜5m'},
+ {id:9,cat:'基本',name:'ハンドキャッチ',time:3,load:1,risk:3,heat:false,water:'不要',coachesNeeded:0,kidsOnly:true,purpose:'ハンドキャッチからの投球モーション',note:'入団したての子には大人がフォロー',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['通常','大会前'],sets:1,setTime:3,video:'',dist:'約5〜8m'},
  {id:10,cat:'実戦',name:'ワンゲット（2チームに分け）',time:3,load:4,risk:3,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'内野アタック2人×ディフェンス5〜6人で2チーム編成',note:'大会前の場合、突き指・ヘッドアタックなど怪我に注意',tech:['アタック'],pos:['内野','外野'],level:['全員'],period:['通常'],sets:4,setTime:2,video:''},
  {id:11,cat:'実戦',name:'パス連携（2チームに分け）',time:10,load:2,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'内野アタック1人・外野1人・ディフェンス5〜6人で2チーム',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野','審判'],level:['全員'],period:['通常','大会前'],sets:4,setTime:2,video:''},
  {id:12,cat:'実戦',name:'パス連携（1チームで）',time:15,load:2,risk:2,heat:false,water:'推奨',coachesNeeded:0,kidsOnly:true,purpose:'内野アタック1人・外野1人・ディフェンス10人前後',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野','審判'],level:['全員'],period:['通常','大会前'],sets:15,setTime:1,video:''},
@@ -426,9 +406,9 @@ const MASTER_MENUS=[
  {id:16,cat:'実戦',name:'模擬試合',time:15,load:3,risk:3,heat:false,water:'推奨',coachesNeeded:6,kidsOnly:false,purpose:'選手・審判のステップアップのための実戦形式。U15がいればそのまま試合へ、いない場合は2チーム編成',note:'突き指・顔面への当たりに注意',tech:['アタック','ディフェンス'],pos:['内野','外野','審判'],level:['全員'],period:['通常','大会前'],sets:3,setTime:5,video:''},
  {id:17,cat:'測定',name:'スピードガン測定',time:15,load:1,risk:1,heat:false,water:'',coachesNeeded:2,kidsOnly:false,purpose:'スピードガンを用意。球速のランク付けはせず、過去データからの伸び率を重視',note:'',tech:['アタック'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
  {id:18,cat:'測定',name:'20m走測定',time:10,load:3,risk:1,heat:false,water:'',coachesNeeded:2,kidsOnly:false,purpose:'ストップウォッチを用意',note:'小学校の体力テスト対策も兼ねて',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
- {id:19,cat:'測定',name:'垂直跳び測定',time:10,load:2,risk:1,heat:false,water:'',coachesNeeded:1,kidsOnly:false,purpose:'北活体育館に設備あり',note:'小学校の体力テスト対策も兼ねて',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
- {id:20,cat:'測定',name:'反復横跳び測定',time:10,load:3,risk:1,heat:true,water:'',coachesNeeded:1,kidsOnly:false,purpose:'ストップウォッチを用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
- {id:21,cat:'測定',name:'立ち幅跳び測定',time:10,load:1,risk:1,heat:true,water:'',coachesNeeded:1,kidsOnly:false,purpose:'メジャーを用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:19,cat:'測定',name:'垂直跳び測定',time:10,load:2,risk:1,heat:false,water:'',coachesNeeded:2,kidsOnly:false,purpose:'体育館に設備あり',note:'小学校の体力テスト対策も兼ねて',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:20,cat:'測定',name:'反復横跳び測定',time:10,load:3,risk:1,heat:true,water:'',coachesNeeded:2,kidsOnly:false,purpose:'ストップウォッチを用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
+ {id:21,cat:'測定',name:'立ち幅跳び測定',time:10,load:1,risk:1,heat:true,water:'',coachesNeeded:2,kidsOnly:false,purpose:'メジャーを用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
  {id:22,cat:'測定',name:'シャトルラン測定',time:15,load:3,risk:1,heat:true,water:'推奨',coachesNeeded:2,kidsOnly:false,purpose:'ストップウォッチ・シャトルラン用音源を用意',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
  {id:23,cat:'レク',name:'コート1周リレー',time:10,load:3,risk:2,heat:true,water:'推奨',coachesNeeded:1,kidsOnly:false,purpose:'大会後・少人数・寒い日などに',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},
  {id:24,cat:'筋トレ',name:'ラダー',time:10,load:2,risk:1,heat:true,water:'推奨',coachesNeeded:1,kidsOnly:false,purpose:'大会後・少人数・寒い日などに',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:['大会後','余裕日'],sets:0,setTime:0,video:''},

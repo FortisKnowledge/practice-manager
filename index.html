@@ -185,7 +185,24 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
 <!-- SCREEN 2: TODAY -->
 <div class="screen" id="screen-today">
-  <div class="page-header"><h1>🏐 今日の練習</h1><p>3〜3.5時間のメニューを組み立てよう</p></div>
+  <div class="page-header" style="padding-bottom:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <div>
+        <h1 style="margin-bottom:2px">🏐 今日の練習</h1>
+        <p>3〜3.5時間のメニューを組み立てよう</p>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button onclick="shareMenuCode()" title="共有コードを発行"
+          style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;white-space:nowrap">
+          📤 共有
+        </button>
+        <button onclick="openImportModal()" title="共有コードを読み込む"
+          style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.5);color:#fff;border-radius:8px;padding:7px 10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;white-space:nowrap">
+          📥 読込
+        </button>
+      </div>
+    </div>
+  </div>
   <div class="tab-bar">
     <div class="tab-item active" onclick="switchTab('today','manual',this)">手動作成</div>
     <div class="tab-item" onclick="switchTab('today','template',this)">テンプレ</div>
@@ -209,12 +226,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       </div>
     </div>
     <div class="save-strip">
-      <button class="btn-primary" onclick="saveTodayPractice()" style="margin-bottom:8px">💾 練習を保存する</button>
-      <button class="btn-secondary" onclick="shareMenuCode()" style="margin-bottom:8px">📤 共有コードを発行する</button>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" class="form-input" id="importCodeInput" placeholder="共有コードを入力して読み込む..." style="flex:1;font-size:13px;padding:10px 12px">
-        <button onclick="importMenuCode()" style="background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Noto Sans JP',sans-serif;">読込</button>
-      </div>
+      <button class="btn-primary" onclick="saveTodayPractice()">💾 練習を保存する</button>
     </div>
   </div>
 
@@ -345,6 +357,21 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 </nav>
 
 <!-- DETAIL MODAL -->
+<!-- IMPORT CODE MODAL -->
+<div class="modal-overlay" id="importCodeModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-handle" onclick="document.getElementById('importCodeModal').classList.remove('open')"></div>
+    <div style="padding:0 16px 28px">
+      <div style="font-size:17px;font-weight:700;margin-bottom:6px">📥 共有コードを読み込む</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px">LINEで受け取ったコード（FPM-…）を貼り付けてください</div>
+      <textarea id="importCodeInput" rows="3"
+        style="width:100%;padding:12px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;font-family:monospace;resize:none;outline:none;color:var(--text);margin-bottom:12px"
+        placeholder="FPM-1x3x1.2x3x1.W3.11x1x15..."></textarea>
+      <button class="btn-primary" onclick="importMenuCode()">✅ このメニューを読み込む</button>
+    </div>
+  </div>
+</div>
+
 <!-- SHARE CODE MODAL -->
 <div class="modal-overlay" id="shareCodeModal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal">
@@ -1134,6 +1161,11 @@ function showCodeModal(code,msg){
   document.getElementById('shareCodeModal').classList.add('open');
 }
 
+function openImportModal(){
+  document.getElementById('importCodeInput').value='';
+  document.getElementById('importCodeModal').classList.add('open');
+}
+
 function importMenuCode(){
   const code=document.getElementById('importCodeInput').value.trim();
   if(!code){alert('共有コードを入力してください');return;}
@@ -1143,6 +1175,7 @@ function importMenuCode(){
   saveTodayDraft();
   renderTodayList();
   document.getElementById('importCodeInput').value='';
+  document.getElementById('importCodeModal').classList.remove('open');
   const total=calcTotalTime();
   const count=menus.filter(m=>!m.isWater).length;
   alert(`✅ メニューを読み込みました！\n${count}メニュー / 合計${total}分`);

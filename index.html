@@ -35,15 +35,15 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .menu-card .meta{font-size:14px;color:var(--text-muted);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
 .menu-card .tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;}
 .tag{font-size:15px;padding:2px 8px;border-radius:20px;font-weight:500;}
-.tag-cat{background:#1e3050;color:#7aaae0;}
-.tag-pos{background:#1a3040;color:#6ab8d8;}
-.tag-tech{background:#1a3020;color:#6ab87a;}
-.tag-risk-1{background:#1a3028;color:#5ab890;}
-.tag-risk-2{background:#2a2010;color:#c9923a;}
-.tag-risk-3{background:#2e1818;color:#c0534a;}
-.tag-load-1{background:#1a3028;color:#6ab890;}
-.tag-load-2{background:#2a2010;color:#c9923a;}
-.tag-load-3{background:#2e1818;color:#c0534a;}
+.tag-cat{background:#1a3a6a;color:#90c4f0;border:1px solid #2a5090;}
+.tag-pos{background:#1a3a50;color:#70c0e0;border:1px solid #1a5070;}
+.tag-tech{background:#1a3a28;color:#70d890;border:1px solid #1a6030;}
+.tag-risk-1{background:#1a3a2a;color:#60d8a0;border:1px solid #1a7040;}
+.tag-risk-2{background:#3a2800;color:#e0a840;border:1px solid #8a6010;}
+.tag-risk-3{background:#3a1414;color:#e07070;border:1px solid #902020;}
+.tag-load-1{background:#1a3a2a;color:#60d8a0;border:1px solid #1a7040;}
+.tag-load-2{background:#3a2800;color:#e0a840;border:1px solid #8a6010;}
+.tag-load-3{background:#3a1414;color:#e07070;border:1px solid #902020;}
 .btn-add-menu{background:#c9923a;color:#111820;border:none;border-radius:var(--radius-sm);width:32px;height:32px;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .15s;}
 .filter-row{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;scrollbar-width:none;background:#1a2535;border-bottom:1px solid var(--border);}
 .filter-row::-webkit-scrollbar{display:none;}
@@ -86,7 +86,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .drag-handle{color:#8a9ab0;font-size:22px;cursor:grab;flex-shrink:0;padding:4px 6px;touch-action:none;background:#253444;border-radius:6px;line-height:1;display:flex;align-items:center;justify-content:center;width:32px;height:40px;}
 .drag-handle:active{cursor:grabbing;background:#2a3d52;}
 /* water item draggable too */
-.water-item{background:#0e2030;border-radius:var(--radius-sm);border:1px dashed #2a6080;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:15px;color:#6ab8d8;cursor:default;user-select:none;}
+.water-item{background:#5cabf0;border-radius:var(--radius-sm);border:1px dashed #2a6080;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:15px;color:#6ab8d8;cursor:default;user-select:none;}
 .water-item.dragging{opacity:.4;}
 .water-item.drag-over{border:2px dashed #c9923a;background:#2a2010;}
 .item-num{width:24px;height:24px;background:#c9923a;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;flex-shrink:0;}
@@ -99,7 +99,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .del-btn{background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:18px;padding:4px;flex-shrink:0;}
 .del-btn:active{color:var(--danger);}
 /* WATER BREAK */
-.water-item{background:#0e2030;border-radius:var(--radius-sm);border:1px dashed #2a6080;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:15px;color:#6ab8d8;}
+.water-item{background:#d6e6f4;border-radius:var(--radius-sm);border:1px dashed #2a6080;padding:8px 12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;font-size:15px;color:#231d1d;}
 .empty-state{text-align:center;padding:40px 20px;color:var(--text-muted);}
 .empty-state .icon{font-size:48px;margin-bottom:12px;opacity:.4;}
 .btn-primary{background:linear-gradient(135deg,#c9923a,#e0aa55);color:#111820;border:none;border-radius:var(--radius);padding:15px 20px;font-size:16px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s,transform .1s;box-shadow:0 4px 16px rgba(201,146,58,.35);}
@@ -473,7 +473,7 @@ const MASTER_MENUS=[
  {id:25,cat:'筋トレ',name:'ランジウォーク',time:10,load:3,risk:1,heat:true,water:'推奨',coachesNeeded:1,kidsOnly:false,purpose:'大会後・少人数・寒い日などに',note:'',tech:['アタック','ディフェンス'],pos:['内野','外野'],level:['全員'],period:[],sets:0,setTime:0,video:''},
 ];
 
-const CAT_COLORS={'基本':'#3498db','実戦':'#e74c3c','測定':'#9b59b6','レク':'#27ae60','筋トレ':'#f39c12','アップ':'#1abc9c'};
+const CAT_COLORS={'基本':'#4db8ff','実戦':'#ff6060','測定':'#c080ff','レク':'#50e090','筋トレ':'#ffb840','アップ':'#40e8c8'};
 const WATER_BREAK={id:'water',name:'💧 給水タイム',time:3,isWater:true};
 const TARGET_MIN=180,TARGET_MAX=210;
 
@@ -662,8 +662,8 @@ function renderMenuList(menus){
       <div class="cat-dot" style="background:${CAT_COLORS[m.cat.trim()]||'#888'}"></div>
       <div class="info">
         <div class="name">${m.name}</div>
-        <div class="meta"><span>⏱ ${m.setTime>0?m.setTime:m.time}分／1セット</span>${m.sets>1?`<span style="font-size:13px;color:var(--text-muted)">× ${m.sets}セット</span>`:''} ${m.dist?`<span style="font-size:15px;color:#2456a0;background:#e0e8ff;padding:2px 7px;border-radius:20px;font-weight:500">📏 ${m.dist}</span>`:''}<span class="tag tag-load-${m.load}">負荷${m.load}</span><span class="tag tag-risk-${m.risk}">リスク${m.risk}</span>${m.heat?'<span class="heat-badge">🌡猛暑注意</span>':''}${m.water==='推奨'?'<span class="water-badge">💧給水推奨</span>':''}</div>
-        <div class="tags"><span class="tag tag-cat">${m.cat.trim()}</span>${m.tech.map(t=>`<span class="tag tag-tech">${t}</span>`).join('')}</div>
+        <div class="meta"><span style="font-size:16px;font-weight:700;color:#e0aa55">⏱ ${m.setTime>0?m.setTime:m.time}<span style="font-size:13px;font-weight:500;color:var(--text-muted)">分／1セット</span></span>${m.sets>1?`<span style="font-size:13px;color:var(--text-muted)">× ${m.sets}セット</span>`:''} ${m.dist?`<span style="font-size:13px;color:#70c8f0;background:#0e2030;border:1px solid #1a5070;padding:2px 8px;border-radius:20px;font-weight:500">📏 ${m.dist}</span>`:''}<span class="tag tag-load-${m.load}">負荷${m.load}</span><span class="tag tag-risk-${m.risk}">リスク${m.risk}</span>${m.heat?'<span class="heat-badge">🌡猛暑注意</span>':''}${m.water==='推奨'?'<span class="water-badge">💧給水推奨</span>':''}</div>
+        <div class="tags"><span class="tag" style="background:${CAT_COLORS[m.cat.trim()]||'#888'}22;color:${CAT_COLORS[m.cat.trim()]||'#aaa'};border:1px solid ${CAT_COLORS[m.cat.trim()]||'#888'}66;font-weight:700">${m.cat.trim()}</span>${m.tech.map(t=>`<span class="tag tag-tech">${t}</span>`).join('')}</div>
       </div>
       <div><button class="btn-add-menu" onclick="addToToday(${m.id},event)" title="今日の練習に追加">＋</button></div>
     </div>`).join('');
@@ -824,7 +824,7 @@ function renderTodayList(){
       <div class="item-info" onclick="showDetailInToday(${m.id})">
         <div class="item-name">${m.name}</div>
         <div class="item-meta" style="margin-top:4px">
-          <span class="tag tag-cat" style="font-size:13px">${m.cat.trim()}</span>
+          <span class="tag" style="font-size:13px;background:${CAT_COLORS[m.cat.trim()]||'#888'}22;color:${CAT_COLORS[m.cat.trim()]||'#aaa'};border:1px solid ${CAT_COLORS[m.cat.trim()]||'#888'}66;font-weight:700">${m.cat.trim()}</span>
           ${m.dist?`<span style="font-size:13px;color:#2456a0;background:#e0e8ff;padding:2px 6px;border-radius:20px;font-weight:500">📏 ${m.dist}</span>`:''}
         </div>
         <div class="item-meta" style="margin-top:6px;gap:4px" onclick="event.stopPropagation()">

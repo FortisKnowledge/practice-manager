@@ -205,7 +205,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   </div>
   <div class="home-grid">
     <div class="home-card accent wide" onclick="showScreen('today', document.querySelectorAll('.nav-btn')[1])">
-      <span class="hc-icon">⚡</span>
+        <span class="hc-icon">⚡</span>
       <div class="hc-name">今日の練習を作る</div>
       <div class="hc-desc">テンプレ・自動提案・手動で<br>メニューを組み立てる</div>
     </div>
@@ -787,7 +787,14 @@ function addWaterBreak(){
 function insertWaterAt(idx){
   todayMenus.splice(idx,0,{...WATER_BREAK,uid:Date.now()+Math.random()});
   saveTodayDraft();renderTodayList();
-  closeWaterModal();
+  openWaterModal();
+  const count =
+  todayMenus.filter(m=>m.isWater).length;
+
+document.querySelector(
+  '#waterModal .modal div[style*="font-size:16px"]'
+).innerHTML =
+`💧 給水タイムをどこに入れる？（${count}回追加済み）`;
 }
 function closeWaterModal(){document.getElementById('waterModal').classList.remove('open');}
 function closeWaterModalOutside(e){if(e.target===document.getElementById('waterModal'))closeWaterModal();}
@@ -1132,10 +1139,12 @@ function saveTodayPractice(){
   }
   hist.unshift(newRecord);
   saveHistory(hist);
-  localStorage.removeItem('today_draft');
-  todayMenus=[];
-  document.getElementById('coachComment').value='';
+ 
+  saveTodayDraft();
+
   renderTodayList();
+  renderHomeStatus();
+
   alert(`✅ ${dateStr} の練習を保存しました！\n合計: ${total}分 / ${realMenus.length}メニュー${comment?'\nコメント: '+comment.slice(0,30):''}`);
 }
 

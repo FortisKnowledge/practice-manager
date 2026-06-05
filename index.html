@@ -395,6 +395,41 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 </nav>
 
 <!-- DETAIL MODAL -->
+<!-- HISTORY EDIT MODAL -->
+<div class="modal-overlay" id="histEditModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal">
+    <div class="modal-handle" onclick="document.getElementById('histEditModal').classList.remove('open')"></div>
+    <div style="padding:0 16px 28px">
+      <div style="font-size:17px;font-weight:700;margin-bottom:2px" id="histEditTitle"></div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px" id="histEditSubtitle"></div>
+
+      <!-- メニュー編集リスト -->
+      <div style="font-size:14px;font-weight:700;color:var(--text-muted);margin-bottom:8px">練習メニュー</div>
+      <div id="histMenuEditList" style="margin-bottom:12px"></div>
+
+      <!-- メニュー追加ドロップダウン -->
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <select id="histMenuAddSelect" class="form-select" style="flex:1;font-size:13px">
+          <option value="">＋ メニューを追加...</option>
+        </select>
+        <button onclick="histAddMenu()" style="background:#c9923a;color:#111820;border:none;border-radius:var(--radius-sm);padding:8px 14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;white-space:nowrap">追加</button>
+      </div>
+
+      <!-- コメント編集 -->
+      <div class="form-group">
+        <label class="form-label">コーチコメント</label>
+        <textarea class="comment-area" id="histEditComment" rows="2"></textarea>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="btn-primary" onclick="saveHistEdit()" style="flex:1">💾 保存</button>
+        <button onclick="loadHistToToday()" style="flex:1;background:#253444;color:#e0aa55;border:1.5px solid #c9923a;border-radius:var(--radius);padding:14px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">📋 今日に読込</button>
+      </div>
+      <button onclick="deleteHistEntry()" style="width:100%;margin-top:8px;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:var(--radius);padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">🗑 この記録を削除</button>
+    </div>
+  </div>
+</div>
+
 <!-- IMPORT CODE MODAL -->
 <div class="modal-overlay" id="importCodeModal" onclick="if(event.target===this)this.classList.remove('open')">
   <div class="modal">
@@ -403,7 +438,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div style="font-size:17px;font-weight:700;margin-bottom:6px">📥 共有コードを読み込む</div>
       <div style="font-size:13px;color:var(--text-muted);margin-bottom:14px">LINEで受け取ったコード（FPM-…）を貼り付けてください</div>
       <textarea id="importCodeInput" rows="3"
-        style="width:100%;padding:12px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;font-family:monospace;resize:none;outline:none;color:#2c2a27;margin-bottom:12px"
+        style="width:100%;padding:12px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:14px;font-family:monospace;resize:none;outline:none;color:#5f584d;margin-bottom:12px"
         placeholder="FPM-1x3x1.2x3x1.W3.11x1x15..."></textarea>
       <button class="btn-primary" onclick="importMenuCode()">✅ このメニューを読み込む</button>
     </div>
@@ -1083,19 +1118,25 @@ function saveTodayPractice(){
   const hist=getHistory();
   const total=calcTotalTime();
   const comment=document.getElementById('coachComment').value.trim();
-  hist.unshift({
+  const newRecord={
     date:dateStr,
-    menus:realMenus.map(m=>({id:m.id,name:m.name,cat:m.cat,time:m.time,tech:m.tech||[],load:m.load,pos:m.pos||[]})),
+    menus:realMenus.map(m=>({id:m.id,name:m.name,cat:m.cat,time:m.time,setTime:m.setTime||m.time,sets:m.sets||1,tech:m.tech||[],load:m.load,pos:m.pos||[]})),
     totalTime:total,
     comment,
     savedAt:n.toISOString()
-  });
+  };
+  const existIdx=hist.findIndex(h=>h.date===dateStr);
+  if(existIdx>=0){
+    if(!confirm(`${dateStr} の練習記録がすでにあります。上書きしますか？`))return;
+    hist.splice(existIdx,1);
+  }
+  hist.unshift(newRecord);
   saveHistory(hist);
   localStorage.removeItem('today_draft');
   todayMenus=[];
   document.getElementById('coachComment').value='';
   renderTodayList();
-  alert(`✅ ${dateStr} の練習を保存しました！\n合計: ${total}分 / ${realMenus.length}メニュー${comment?'\nコメント: '+comment.slice(0,30):''}`)
+  alert(`✅ ${dateStr} の練習を保存しました！\n合計: ${total}分 / ${realMenus.length}メニュー${comment?'\nコメント: '+comment.slice(0,30):''}`);
 }
 
 // ========== TEMPLATES ==========
@@ -1261,6 +1302,9 @@ function copyShareCode(){
   }
 }
 
+let histEditIdx=null;
+let histEditMenus=[];
+
 function renderHistory(){
   const hist=getHistory();
   const c=document.getElementById('historyList');
@@ -1270,18 +1314,178 @@ function renderHistory(){
     const d=new Date(h.date+'T00:00:00');
     const ds=`${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DAY[d.getDay()]}）`;
     const names=h.menus.map(m=>m.name).join('、');
-    return `<div class="history-item" onclick="toggleHistDetail(${i})">
-      <div class="history-date">${ds}</div>
+    return `<div class="history-item">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+        <div class="history-date" style="font-weight:700;font-size:14px;color:var(--text)">${ds}</div>
+        <button onclick="openHistEdit(${i})" style="background:#253444;border:1px solid #3a526a;color:#e0aa55;border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;flex-shrink:0;margin-left:8px">編集</button>
+      </div>
       <div class="history-menus">${names.length>60?names.slice(0,60)+'…':names}</div>
-      <div class="history-stats"><span class="history-stat">⏱ ${h.totalTime}分</span><span class="history-stat">📋 ${h.menus.length}件</span>${h.comment?`<span class="history-stat">💬 ${h.comment.slice(0,20)}…</span>`:''}</div>
+      <div class="history-stats">
+        <span class="history-stat">⏱ ${h.totalTime}分</span>
+        <span class="history-stat">📋 ${h.menus.length}件</span>
+        ${h.comment?`<span class="history-stat">💬 ${h.comment.slice(0,20)}${h.comment.length>20?'…':''}</span>`:''}
+      </div>
       <div id="hd-${i}" style="display:none;margin-top:10px">
-        ${h.menus.map(m=>`<div style="font-size:14px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between"><span>${m.name}</span><span style="color:var(--text-muted)">${m.time}分</span></div>`).join('')}
+        ${h.menus.map(m=>`<div style="font-size:14px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between">
+          <span>${m.name}</span>
+          <span style="color:var(--text-muted)">${m.setTime&&m.sets?(m.setTime+'分×'+m.sets+'セット'):m.time+'分'}</span>
+        </div>`).join('')}
         ${h.comment?`<div style="margin-top:8px;padding:8px;background:var(--bg);border-radius:6px;font-size:14px;color:var(--text-muted)">💬 ${h.comment}</div>`:''}
       </div>
+      <button onclick="toggleHistDetail(${i})" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;margin-top:6px;font-family:'Noto Sans JP',sans-serif;padding:2px 0">▼ 詳細を見る</button>
     </div>`;
   }).join('');
 }
-function toggleHistDetail(i){const el=document.getElementById('hd-'+i);el.style.display=el.style.display==='none'?'block':'none';}
+
+function toggleHistDetail(i){
+  const el=document.getElementById('hd-'+i);
+  const btn=el.nextElementSibling;
+  const open=el.style.display==='none';
+  el.style.display=open?'block':'none';
+  if(btn)btn.textContent=open?'▲ 閉じる':'▼ 詳細を見る';
+}
+
+function openHistEdit(i){
+  const hist=getHistory();
+  const h=hist[i];
+  if(!h)return;
+  histEditIdx=i;
+  histEditMenus=h.menus.map(m=>({...m}));
+  const DAY=['日','月','火','水','木','金','土'];
+  const d=new Date(h.date+'T00:00:00');
+  document.getElementById('histEditTitle').textContent=
+    `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日（${DAY[d.getDay()]}）`;
+  document.getElementById('histEditComment').value=h.comment||'';
+  const sel=document.getElementById('histMenuAddSelect');
+  const all=getMenus();
+  sel.innerHTML='<option value="">＋ メニューを追加...</option>'+
+    all.map(m=>`<option value="${m.id}">[${m.cat}] ${m.name}</option>`).join('');
+  renderHistMenuEditList();
+  document.getElementById('histEditModal').classList.add('open');
+}
+
+function renderHistMenuEditList(){
+  const c=document.getElementById('histMenuEditList');
+  const total=histEditMenus.reduce((s,m)=>s+(m.time||0),0);
+  document.getElementById('histEditSubtitle').textContent=
+    `${histEditMenus.length}メニュー / 合計${total}分`;
+  if(!histEditMenus.length){
+    c.innerHTML='<div style="font-size:13px;color:var(--text-muted);padding:8px 0">メニューがありません</div>';
+    return;
+  }
+  c.innerHTML=histEditMenus.map((m,i)=>`
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.name}</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:4px;display:flex;align-items:center;gap:4px;flex-wrap:wrap">
+          <input type="number" value="${m.setTime||m.time}" min="1" max="120"
+            onchange="histEditSetTime(${i},this.value)"
+            style="width:38px;padding:2px 4px;border:1px solid var(--border-strong);border-radius:4px;font-size:12px;text-align:center;background:#141c24;color:var(--text)">
+          <span>分×</span>
+          <input type="number" value="${m.sets||1}" min="1" max="30"
+            onchange="histEditSetSets(${i},this.value)"
+            style="width:38px;padding:2px 4px;border:1px solid var(--border-strong);border-radius:4px;font-size:12px;text-align:center;background:#141c24;color:var(--text)">
+          <span>セット＝</span>
+          <span style="color:#e0aa55;font-weight:700">${m.time}分</span>
+        </div>
+      </div>
+      <button onclick="histMoveUp(${i})" ${i===0?'disabled':''} style="background:#253444;border:1px solid var(--border-strong);color:var(--text);border-radius:4px;padding:5px 8px;cursor:pointer;font-size:13px;${i===0?'opacity:.3':''}">↑</button>
+      <button onclick="histMoveDown(${i})" ${i===histEditMenus.length-1?'disabled':''} style="background:#253444;border:1px solid var(--border-strong);color:var(--text);border-radius:4px;padding:5px 8px;cursor:pointer;font-size:13px;${i===histEditMenus.length-1?'opacity:.3':''}">↓</button>
+      <button onclick="histRemoveMenu(${i})" style="background:transparent;border:1px solid var(--danger);color:var(--danger);border-radius:4px;padding:5px 8px;cursor:pointer;font-size:13px;">✕</button>
+    </div>`).join('');
+}
+
+function histEditSetTime(i,val){
+  histEditMenus[i].setTime=Math.max(1,parseInt(val)||1);
+  histEditMenus[i].time=histEditMenus[i].setTime*(histEditMenus[i].sets||1);
+  renderHistMenuEditList();
+}
+function histEditSetSets(i,val){
+  histEditMenus[i].sets=Math.max(1,parseInt(val)||1);
+  histEditMenus[i].time=(histEditMenus[i].setTime||histEditMenus[i].time)*histEditMenus[i].sets;
+  renderHistMenuEditList();
+}
+function histRemoveMenu(i){
+  histEditMenus.splice(i,1);
+  renderHistMenuEditList();
+}
+function histMoveUp(i){
+  if(i===0)return;
+  [histEditMenus[i-1],histEditMenus[i]]=[histEditMenus[i],histEditMenus[i-1]];
+  renderHistMenuEditList();
+}
+function histMoveDown(i){
+  if(i>=histEditMenus.length-1)return;
+  [histEditMenus[i],histEditMenus[i+1]]=[histEditMenus[i+1],histEditMenus[i]];
+  renderHistMenuEditList();
+}
+function histAddMenu(){
+  const sel=document.getElementById('histMenuAddSelect');
+  const id=parseInt(sel.value);
+  if(!id)return;
+  const m=getMenus().find(x=>x.id===id);
+  if(!m)return;
+  const st=m.setTime||m.time||5;
+  const sc=m.sets||1;
+  histEditMenus.push({id:m.id,name:m.name,cat:m.cat,time:st*sc,setTime:st,sets:sc,tech:m.tech||[],load:m.load,pos:m.pos||[]});
+  sel.value='';
+  renderHistMenuEditList();
+}
+
+function saveHistEdit(){
+  if(histEditIdx===null)return;
+  const hist=getHistory();
+  const total=histEditMenus.reduce((s,m)=>s+(m.time||0),0);
+  hist[histEditIdx].menus=histEditMenus;
+  hist[histEditIdx].totalTime=total;
+  hist[histEditIdx].comment=document.getElementById('histEditComment').value.trim();
+  hist[histEditIdx].updatedAt=new Date().toISOString();
+  saveHistory(hist);
+  document.getElementById('histEditModal').classList.remove('open');
+  renderHistory();
+  renderCalendar();
+  renderAnalysis();
+}
+
+function deleteHistEntry(){
+  if(histEditIdx===null)return;
+  const hist=getHistory();
+  const h=hist[histEditIdx];
+  if(!confirm(`${h.date} の練習記録を削除しますか？\nこの操作は取り消せません。`))return;
+  hist.splice(histEditIdx,1);
+  saveHistory(hist);
+  histEditIdx=null;
+  document.getElementById('histEditModal').classList.remove('open');
+  renderHistory();
+  renderCalendar();
+  renderAnalysis();
+}
+
+function loadHistToToday(){
+  if(histEditIdx===null)return;
+  const hist=getHistory();
+  const h=hist[histEditIdx];
+  if(!h||!h.menus.length)return;
+  if(todayMenus.filter(m=>!m.isWater).length>0){
+    if(!confirm('今日の練習にすでにメニューがあります。\n置き換えますか？'))return;
+  }
+  const all=getMenus();
+  // マスターから再構築（setTime/sets付き）
+  const loaded=h.menus.map((hm,i)=>{
+    const master=all.find(x=>x.id===hm.id);
+    const base=master?{...master}:{...hm,tech:hm.tech||[],pos:hm.pos||[]};
+    const st=hm.setTime||hm.time||5;
+    const sc=hm.sets||1;
+    return {...base,setTime:st,sets:sc,time:st*sc,uid:Date.now()+Math.random()+i};
+  });
+  todayMenus=loaded;
+  saveTodayDraft();
+  document.getElementById('histEditModal').classList.remove('open');
+  showScreen('today',document.querySelectorAll('.nav-btn')[2]);
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>b.classList.toggle('active',i===2));
+  renderTodayList();
+  alert(`✅ ${h.date} の練習メニューを読み込みました\n${loaded.length}メニュー / 合計${calcTotalTime()}分`);
+}
 
 // ========== CALENDAR ==========
 function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}

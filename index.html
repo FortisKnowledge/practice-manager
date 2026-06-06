@@ -787,14 +787,8 @@ function addWaterBreak(){
 function insertWaterAt(idx){
   todayMenus.splice(idx,0,{...WATER_BREAK,uid:Date.now()+Math.random()});
   saveTodayDraft();renderTodayList();
-  openWaterModal();
-  const count =
-  todayMenus.filter(m=>m.isWater).length;
-
-document.querySelector(
-  '#waterModal .modal div[style*="font-size:16px"]'
-).innerHTML =
-`💧 給水タイムをどこに入れる？（${count}回追加済み）`;
+  // モーダルは閉じずにリストを再描画→続けて給水を追加できる
+  addWaterBreak();
 }
 function closeWaterModal(){document.getElementById('waterModal').classList.remove('open');}
 function closeWaterModalOutside(e){if(e.target===document.getElementById('waterModal'))closeWaterModal();}
@@ -1139,12 +1133,7 @@ function saveTodayPractice(){
   }
   hist.unshift(newRecord);
   saveHistory(hist);
- 
-  saveTodayDraft();
-
-  renderTodayList();
-  renderHomeStatus();
-
+  // 保存後もメニューはそのまま残す
   alert(`✅ ${dateStr} の練習を保存しました！\n合計: ${total}分 / ${realMenus.length}メニュー${comment?'\nコメント: '+comment.slice(0,30):''}`);
 }
 

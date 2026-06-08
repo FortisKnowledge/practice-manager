@@ -174,8 +174,8 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .btn-start:active{transform:scale(.98);}
 .btn-stop{background:#c0534a;color:#fff;border:none;border-radius:var(--radius);padding:14px 20px;font-size:16px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;box-shadow:0 4px 16px rgba(192,83,74,.35);transition:transform .1s;}
 .btn-stop:active{transform:scale(.98);}
-@keyframes practiceFlash{0%,100%{background:var(--bg-card);box-shadow:none;border-color:var(--border);}50%{background:#1a3a1a;box-shadow:0 0 16px rgba(60,220,60,.4);border-color:#3a9a3a;}}
-.today-item.active-menu{animation:practiceFlash 1.4s ease-in-out infinite !important;}
+@keyframes practiceFlash{0%,100%{background:#1e2a36;box-shadow:none;border-color:var(--border);}50%{background:#0a3a0a;box-shadow:0 0 22px rgba(80,255,80,.6),inset 0 0 12px rgba(60,200,60,.15);border-color:#50c850;}}
+.today-item.active-menu{animation:practiceFlash 1.0s ease-in-out infinite !important;border-width:2px !important;}
 .session-hide{display:none!important;}
 /* COMMENT BOX */
 .comment-area{width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:15px;font-family:'Noto Sans JP',sans-serif;color:var(--text);resize:none;outline:none;}
@@ -876,9 +876,13 @@ function renderTodayList(){
         <div class="item-num" style="${isActive?'background:#3a9a3a':''}">${num}</div>
         <div class="item-info">
           <div class="item-name">${m.name}</div>
-          <div class="item-meta" style="margin-top:4px">
+          <div class="item-meta" style="margin-top:5px;gap:5px;flex-wrap:wrap">
             <span class="tag" style="font-size:13px;background:${CAT_COLORS[m.cat.trim()]||'#888'}22;color:${CAT_COLORS[m.cat.trim()]||'#aaa'};border:1px solid ${CAT_COLORS[m.cat.trim()]||'#888'}66;font-weight:700">${m.cat.trim()}</span>
-            <span style="font-size:13px;color:var(--text-muted)">⏱ ${total}分</span>
+            <span style="font-size:14px;color:var(--text-muted)">${st}分</span>
+            <span style="font-size:14px;color:var(--text-muted)">×</span>
+            <span style="font-size:14px;color:var(--text-muted)">${sc}セット</span>
+            <span style="font-size:14px;color:var(--text-muted)">＝</span>
+            <span style="font-size:15px;font-weight:700;color:#e0aa55">${total}分</span>
           </div>
         </div>
       </div>`;

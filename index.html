@@ -169,6 +169,14 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .detail-row .dv{font-weight:500;text-align:right;max-width:65%;}
 .video-link{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#dc2626;font-size:15px;font-weight:700;text-decoration:none;margin-top:12px;}
 .save-strip{position:sticky;bottom:68px;z-index:50;padding:0 16px 10px;background:linear-gradient(transparent,#141c24 40%);}
+/* PRACTICE SESSION MODE */
+.btn-start{background:linear-gradient(135deg,#1a5a1a,#2a8a2a);color:#90ff90;border:1.5px solid #3a9a3a;border-radius:var(--radius);padding:14px 20px;font-size:16px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(42,138,42,.35);margin-bottom:8px;transition:transform .1s;}
+.btn-start:active{transform:scale(.98);}
+.btn-stop{background:#c0534a;color:#fff;border:none;border-radius:var(--radius);padding:14px 20px;font-size:16px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:8px;box-shadow:0 4px 16px rgba(192,83,74,.35);transition:transform .1s;}
+.btn-stop:active{transform:scale(.98);}
+@keyframes practiceFlash{0%,100%{background:var(--bg-card);box-shadow:none;border-color:var(--border);}50%{background:#1a3a1a;box-shadow:0 0 16px rgba(60,220,60,.4);border-color:#3a9a3a;}}
+.today-item.active-menu{animation:practiceFlash 1.4s ease-in-out infinite !important;}
+.session-hide{display:none!important;}
 /* COMMENT BOX */
 .comment-area{width:100%;padding:10px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:15px;font-family:'Noto Sans JP',sans-serif;color:var(--text);resize:none;outline:none;}
 .comment-area:focus{border-color:#c9923a;}
@@ -265,22 +273,23 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 
   <!-- MANUAL -->
   <div class="tab-panel active" id="tab-today-manual">
-    <div class="total-bar">
+    <div class="total-bar" id="totalBarArea">
       <div><div class="t-lbl">合計時間</div><div class="t-val" id="totalTime">0 分</div></div>
-      <div style="text-align:center"><button onclick="addWaterBreak()" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);color:#fff;border-radius:8px;padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">💧 給水追加</button></div>
+      <div style="text-align:center"><button onclick="addWaterBreak()" class="session-hide" id="waterAddBtn" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);color:#fff;border-radius:8px;padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">💧 給水追加</button></div>
       <div style="text-align:right"><div class="t-lbl">目標: 180〜210分</div><div class="t-val" id="menuCount">0 件</div></div>
     </div>
     <div class="section" id="todayListWrap">
       <div id="todayList"><div class="empty-state"><div class="icon">🏐</div><p>まだメニューがありません。<br>「練習メニュー一覧」からタップで追加！</p></div></div>
     </div>
-    <div style="padding:0 16px 8px">
+    <div style="padding:0 16px 8px" id="commentArea">
       <div class="form-group">
         <label class="form-label">コーチコメント（保存時に記録）</label>
         <textarea class="comment-area" id="coachComment" rows="3" placeholder="今日の練習テーマ・気付きなど..."></textarea>
       </div>
     </div>
-    <div class="save-strip">
-      <button class="btn-primary" onclick="saveTodayPractice()">💾 練習を保存する</button>
+    <div class="save-strip" id="saveStripArea">
+      <button class="btn-start" onclick="startPracticeSession()" id="startBtn">▶ 練習を始める</button>
+      <button class="btn-primary" id="savePracticeBtn" onclick="saveTodayPractice()">💾 練習を保存する</button>
     </div>
   </div>
 
@@ -837,6 +846,13 @@ function renderTodayList(){
   let num=0;
   c.innerHTML=todayMenus.map((m,i)=>{
     if(m.isWater){
+      const isActiveW=sessionActive&&i===sessionCurrentIdx;
+      if(sessionActive){
+        return `<div class="water-item${isActiveW?' active-menu':''}" data-idx="${i}"
+          style="cursor:pointer" onclick="setActiveMenu(${i})">
+          💧 給水タイム <span style="margin-left:auto;font-size:14px;font-weight:700">${m.time}分</span>
+        </div>`;
+      }
       return `<div class="water-item" data-idx="${i}">
         <span class="drag-handle" style="background:rgba(2,132,199,0.12);color:#0369a1"
           onmousedown="handleMouseDown(event,${i})"
@@ -853,6 +869,20 @@ function renderTodayList(){
     const sc = m.sets||1;
     const total = st * sc;
     const zebraClass = num%2===0 ? 'row-even' : 'row-odd';
+    const isActive = sessionActive && i===sessionCurrentIdx;
+    if(sessionActive){
+      return `<div class="today-item ${zebraClass}${isActive?' active-menu':''}" data-idx="${i}"
+        style="cursor:pointer" onclick="setActiveMenu(${i});showDetail(${m.id})">
+        <div class="item-num" style="${isActive?'background:#3a9a3a':''}">${num}</div>
+        <div class="item-info">
+          <div class="item-name">${m.name}</div>
+          <div class="item-meta" style="margin-top:4px">
+            <span class="tag" style="font-size:13px;background:${CAT_COLORS[m.cat.trim()]||'#888'}22;color:${CAT_COLORS[m.cat.trim()]||'#aaa'};border:1px solid ${CAT_COLORS[m.cat.trim()]||'#888'}66;font-weight:700">${m.cat.trim()}</span>
+            <span style="font-size:13px;color:var(--text-muted)">⏱ ${total}分</span>
+          </div>
+        </div>
+      </div>`;
+    }
     return `<div class="today-item ${zebraClass}" data-idx="${i}"
       ondragover="dragOver(event,${i})" ondrop="dragDrop(event,${i})" ondragend="dragEnd(event)">
       <span class="drag-handle"
@@ -1107,6 +1137,50 @@ function totalWithWater(menus){
 }
 
 // ========== SAVE / LOAD ==========
+// ========== PRACTICE SESSION ==========
+let sessionActive=false;
+let sessionCurrentIdx=-1; // -1=未選択
+
+function startPracticeSession(){
+  const real=todayMenus.filter(m=>!m.isWater);
+  if(!real.length){alert('メニューを追加してから練習を始めてください');return;}
+  sessionActive=true;
+  sessionCurrentIdx=0;
+  // ボタン切り替え
+  document.getElementById('startBtn').style.display='none';
+  document.getElementById('savePracticeBtn').classList.add('session-hide');
+  document.getElementById('commentArea').classList.add('session-hide');
+  document.getElementById('waterAddBtn').classList.remove('session-hide');
+  // 止めるボタン追加
+  const strip=document.getElementById('saveStripArea');
+  const stopBtn=document.createElement('button');
+  stopBtn.className='btn-stop';
+  stopBtn.id='stopBtn';
+  stopBtn.innerHTML='■ 練習を止める';
+  stopBtn.onclick=stopPracticeSession;
+  strip.insertBefore(stopBtn,strip.firstChild);
+  renderTodayList();
+}
+
+function stopPracticeSession(){
+  sessionActive=false;
+  sessionCurrentIdx=-1;
+  // ボタン戻す
+  document.getElementById('startBtn').style.display='';
+  document.getElementById('savePracticeBtn').classList.remove('session-hide');
+  document.getElementById('commentArea').classList.remove('session-hide');
+  document.getElementById('waterAddBtn').classList.add('session-hide');
+  const stopBtn=document.getElementById('stopBtn');
+  if(stopBtn)stopBtn.remove();
+  renderTodayList();
+}
+
+function setActiveMenu(idx){
+  if(!sessionActive)return;
+  sessionCurrentIdx=idx;
+  renderTodayList();
+}
+
 function saveTodayDraft(){localStorage.setItem('today_draft',JSON.stringify(todayMenus));}
 function loadTodayDraft(){
   const d=localStorage.getItem('today_draft');

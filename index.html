@@ -208,6 +208,15 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 <!-- SCREEN 0: HOME -->
 <div class="screen active" id="screen-home" style="padding-bottom:calc(var(--bottom-h)+16px)">
   <div class="home-hero">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px">
+      <div style="font-size:13px;color:rgba(255,255,255,.7);font-weight:500" id="homeDateLabel"></div>
+      <div id="homeWeather" style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgba(255,255,255,.85)">
+        <span id="homeWeatherLoc" style="color:rgba(255,255,255,.45);font-size:12px"></span>
+        <span id="homeWeatherIcon" style="font-size:15px"></span>
+        <span id="homeWeatherDesc" style="color:rgba(255,255,255,.7)"></span>
+        <span id="homeWeatherTemp" style="font-weight:700"></span>
+      </div>
+    </div>
     <div class="home-title">⚡ <span>Fortis</span></div>
     <div style="font-size:13px;color:rgba(255,255,255,.45);letter-spacing:.18em;margin-top:6px">PRACTICE MANAGER</div>
   </div>
@@ -653,6 +662,9 @@ function renderHomeStatus(){
   const todayReal=todayMenus.filter(m=>!m.isWater);
   const lastPractice=hist[0];
   const DAY=['日','月','火','水','木','金','土'];
+  const now=new Date();
+  const dateEl=document.getElementById('homeDateLabel');
+  if(dateEl) dateEl.textContent=`${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日（${DAY[now.getDay()]}）`;
   let rows='';
   if(todayReal.length>0){
     const t=calcTotalTime();
@@ -669,6 +681,45 @@ function renderHomeStatus(){
   }
   rows+=`<div class="home-status-row"><span>📊 累計練習回数</span><span style="font-weight:700">${hist.length}回</span></div>`;
   document.getElementById('homeStatus').innerHTML=`<div class="home-status-title">現在の状況</div>${rows}`;
+  fetchHomeWeather();
+}
+
+// 熊谷（埼玉県北部）の天気取得 - Open-Meteo APIキー不要
+const WMO_MAP={
+  0:'☀️:快晴',1:'🌤:ほぼ快晴',2:'⛅:やや曇り',3:'☁️:曇り',
+  45:'🌫:霧',48:'🌫:氷霧',
+  51:'🌦:小雨',53:'🌦:霧雨',55:'🌧:強い霧雨',
+  61:'🌧:小雨',63:'🌧:雨',65:'🌧:強雨',
+  71:'🌨:小雪',73:'❄️:雪',75:'❄️:大雪',77:'❄️:みぞれ',
+  80:'🌦:にわか雨',81:'🌧:にわか雨',82:'⛈:激しいにわか雨',
+  85:'🌨:にわか雪',86:'❄️:大雪',
+  95:'⛈:雷雨',96:'⛈:雷雨+ひょう',99:'⛈:雷雨+大ひょう',
+};
+async function fetchHomeWeather(){
+  const iconEl=document.getElementById('homeWeatherIcon');
+  const descEl=document.getElementById('homeWeatherDesc');
+  const tempEl=document.getElementById('homeWeatherTemp');
+  if(!iconEl)return;
+  descEl.textContent='取得中…';
+  try{
+    const url='https://api.open-meteo.com/v1/forecast?latitude=36.14&longitude=139.39&daily=weathercode,temperature_2m_max,temperature_2m_min&timezone=Asia%2FTokyo&forecast_days=1';
+    const res=await fetch(url);
+    const data=await res.json();
+    const code=data.daily.weathercode[0];
+    const hi=Math.round(data.daily.temperature_2m_max[0]);
+    const lo=Math.round(data.daily.temperature_2m_min[0]);
+    const wmo=WMO_MAP[code]||'🌡:不明';
+    const [icon,desc]=wmo.split(':');
+    iconEl.textContent=icon;
+    descEl.textContent=desc;
+    tempEl.innerHTML=`<span style="color:#ff8a80">▲${hi}°</span><span style="color:rgba(255,255,255,.4)"> / </span><span style="color:#80d8ff">▼${lo}°</span>`;
+    const locEl=document.getElementById('homeWeatherLoc');
+    if(locEl)locEl.textContent='📍熊谷';
+  }catch(e){
+    iconEl.textContent='';
+    descEl.textContent='取得失敗';
+    tempEl.textContent='';
+  }
 }
 function switchTab(screen,tab,el){
   document.querySelectorAll('#screen-'+screen+' .tab-panel').forEach(p=>p.classList.remove('active'));

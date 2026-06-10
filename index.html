@@ -236,6 +236,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       <div class="hc-name">練習履歴・分析</div>
       <div class="hc-desc">過去の練習を<br>振り返る</div>
     </div>
+    <div class="home-card wide" onclick="openMatchModal()" style="background:linear-gradient(135deg,#1a2a4a,#1a3a5a);border-color:#2a5a8a;">
+      <span class="hc-icon" style="font-size:26px">🎬</span>
+      <div class="hc-name" style="color:#90c8ff">最新の試合を観る</div>
+      <div class="hc-desc" style="color:rgba(144,200,255,.7)">試合動画の振り返り・問題箇所を再生</div>
+    </div>
     <div class="home-card wide" onclick="openImportModal()">
       <span class="hc-icon">📥</span>
       <div class="hc-name">共有コードを読み込む</div>
@@ -445,6 +450,18 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       </div>
       <button onclick="deleteHistEntry()" style="width:100%;margin-top:8px;background:transparent;color:var(--danger);border:1.5px solid var(--danger);border-radius:var(--radius);padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">🗑 この記録を削除</button>
     </div>
+  </div>
+</div>
+
+<!-- MATCH VIDEO MODAL -->
+<div class="modal-overlay" id="matchModal" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal" style="max-height:92vh">
+    <div class="modal-handle" onclick="document.getElementById('matchModal').classList.remove('open')"></div>
+    <div style="padding:0 16px 14px;border-bottom:1px solid var(--border)">
+      <div style="font-size:17px;font-weight:700;color:var(--text)">🎬 試合動画一覧</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-top:3px">タップして動画を開く</div>
+    </div>
+    <div id="matchList" style="padding:12px 16px 28px;overflow-y:auto;max-height:78vh"></div>
   </div>
 </div>
 
@@ -1341,10 +1358,57 @@ function applySuggested(items){
   document.querySelectorAll('#screen-today .tab-item').forEach((el,i)=>el.classList.toggle('active',i===0));
 }
 
-// ========== SHARE CODE ==========
-// フォーマット: FPM-[id]x[setTime]x[sets].[id]x[setTime]x[sets]...
-// 給水タイムは W[time] で表現
-// 例: FPM-1x3x1.2x3x1.Wx3.11x1x15.16x5x3
+// ========== MATCH VIDEO ==========
+// ★ 試合動画をここに登録してください
+// result: 'win'=勝利 / 'lose'=敗北 / 'draw'=引分
+// url: YouTubeのURL（youtu.be/xxxx 形式推奨）
+const PRESET_MATCHES = [
+ {date:'2026-06-07', title:'ほっともっとCUP vs KIZUNA', result:'win',
+   url:'https://youtu.be/O4M0pzw0mdg?si=yO0zVAhrB_wbRqYY'},
+  {date:'2026-06-07', title:'ほっともっとCUP vs 本庄アタッカーズ', result:'lose',
+   url:'https://youtu.be/M_EzXnx0oFQ?si=HX1NZBT2r7_x2hHH'},
+   {date:'2026-06-07', title:'ほっともっとCUP vs 桜火魂', result:'lose',
+   url:'https://youtu.be/-14db5_f_-4?si=8tziojTTqiQGd4v5'},
+    {date:'2026-06-07', title:'ほっともっとCUP vs RINO☆ADVANCE', result:'lose',
+   url:'https://youtu.be/Jk6uHN7Ye3g?si=gAgzVMlPHJs6DkSg'},
+    {date:'2026-06-07', title:'ほっともっとCUP vs 隼’Eight ', result:'lose',
+   url:'https://youtu.be/P33D1MAvjnY?si=mx8thme-bbefZmLa'},
+    {date:'2026-06-07', title:'ほっともっとCUP vs 錦ドッジボールアカデミー ', result:'lose',
+   url:'https://youtu.be/EMCR4ixbQEg?si=78saczrQ6K_MVR3C'},
+    {date:'2026-06-07', title:'ほっともっとCUP vs 高階イーグルファイターズ ', result:'lose',
+   url:'https://youtu.be/F-szok8Fbv0?si=aV0c7_epBW_G3Jba'},
+];
+
+function openMatchModal(){
+  renderMatchList();
+  document.getElementById('matchModal').classList.add('open');
+}
+
+function renderMatchList(){
+  const c=document.getElementById('matchList');
+  if(!PRESET_MATCHES.length){
+    c.innerHTML='<div class="empty-state" style="padding:30px 0"><div class="icon">🎬</div><p>試合が登録されていません。<br>ソースコードの PRESET_MATCHES に<br>URLを追加してください。</p></div>';
+    return;
+  }
+  const resultLabel={win:'✅ 勝利',lose:'❌ 敗北',draw:'🤝 引分'};
+  const resultColor={win:'#60d890',lose:'#e07070',draw:'#e0aa55'};
+  const sorted=[...PRESET_MATCHES].sort((a,b)=>b.date.localeCompare(a.date));
+  c.innerHTML=sorted.map(m=>`
+    <a href="${m.url}" target="_blank" style="display:block;text-decoration:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:15px;font-weight:700;color:#90c8ff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.title}</div>
+          <div style="display:flex;gap:10px;align-items:center;font-size:13px">
+            <span style="color:var(--text-muted)">${m.date}</span>
+            <span style="font-weight:700;color:${resultColor[m.result]||'#aaa'}">${resultLabel[m.result]||''}</span>
+          </div>
+        </div>
+        <div style="flex-shrink:0;background:#1a2a4a;border:1px solid #2a5a8a;color:#90c8ff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">▶ 観る</div>
+      </div>
+    </a>`).join('');
+}
+
+
 function encodeMenuCode(menus){
   const parts=menus.map(m=>{
     if(m.isWater) return 'W'+(m.time||3);

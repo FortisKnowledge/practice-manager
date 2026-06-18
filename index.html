@@ -65,7 +65,7 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .home-title{font-family:'Oswald',sans-serif;font-size:32px;font-weight:700;color:#fff;letter-spacing:.04em;line-height:1.2;}
 .home-title span{color:#e0aa55;}
 .home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:20px 16px 8px;}
-.home-card{background:#2a3d52;border-radius:12px;border:1px solid #3a526a;padding:5px 10px 10px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.home-card{background:#2a3d52;border-radius:12px;border:1px solid #3a526a;padding:20px 14px 18px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 16px rgba(0,0,0,.3);}
 .home-card:active{transform:scale(.97);background:#324d66;}
 .home-card .hc-icon{font-size:32px;margin-bottom:10px;display:block;}
 .home-card .hc-name{font-size:15px;font-weight:700;color:#e8e2d9;margin-bottom:4px;}
@@ -809,7 +809,7 @@ function showDetail(id){
       ${m.note?`<div class="alert alert-warning" style="margin-bottom:14px">⚠️ <strong>備考・注意事項：</strong><br>${m.note}</div>`:''}
       <div class="section-title" style="margin-bottom:8px">📊 詳細情報</div>
       <div class="detail-row"><span class="dl">セット構成</span><span class="dv">${m.sets>0?`${m.setTime}分 × ${m.sets}セット`:'—'}</span></div>
-      ${m.dist?`<div class="detail-row"><span class="dl">📏 距離</span><span class="dv" style="color:#2456a0;font-weight:700">${m.dist}</span></div>`:''}
+      ${m.dist?`<div class="detail-row"><span class="dl">📏 距離</span><span class="dv" style="color:#70c8f0;font-weight:700">${m.dist}</span></div>`:''}
       <div class="detail-row"><span class="dl">コーチ必要人数</span><span class="dv">${m.coachesNeeded}人</span></div>
       <div class="detail-row"><span class="dl">対象ポジション</span><span class="dv">${m.pos.join('・')}</span></div>
       <div class="detail-row"><span class="dl">技術タグ</span><span class="dv">${m.tech.join('・')}</span></div>
@@ -965,7 +965,7 @@ function renderTodayList(){
         <div class="item-name">${m.name}</div>
         <div class="item-meta" style="margin-top:4px">
           <span class="tag" style="font-size:13px;background:${CAT_COLORS[m.cat.trim()]||'#888'}22;color:${CAT_COLORS[m.cat.trim()]||'#aaa'};border:1px solid ${CAT_COLORS[m.cat.trim()]||'#888'}66;font-weight:700">${m.cat.trim()}</span>
-          ${m.dist?`<span style="font-size:13px;color:#2456a0;background:#e0e8ff;padding:2px 6px;border-radius:20px;font-weight:500">📏 ${m.dist}</span>`:''}
+          ${m.dist?`<span style="font-size:13px;color:#70c8f0;background:#0e2030;border:1px solid #1a5070;padding:2px 6px;border-radius:20px;font-weight:500">📏 ${m.dist}</span>`:''}
         </div>
         <div class="item-meta" style="margin-top:6px;gap:4px" onclick="event.stopPropagation()">
           <span style="font-size:13px;color:var(--text-muted)">⏱</span>
@@ -1329,6 +1329,9 @@ function generateSuggestion(){
   if(period==='prematch')warnings.push('🏆 大会直前：最終確認・軽め調整で構成しました');
   if(total<TARGET_MIN)warnings.push(`⏱ 合計${total}分です。手動でメニューを追加して${TARGET_MIN}〜${TARGET_MAX}分に調整できます`);
 
+  // 提案結果をグローバル変数に保存（onclick属性へのJSON埋め込みを避ける）
+  window._lastSuggestedMenus = menus;
+
   const resultDiv=document.getElementById('suggestResult');
   resultDiv.style.display='block';
   let num=0;
@@ -1343,19 +1346,30 @@ function generateSuggestion(){
         <div class="item-info"><div class="item-name">${m.name}</div>
         <div class="item-meta"><span class="tag tag-cat" style="font-size:15px">${m.cat.trim()}</span><span style="margin-left:6px">⏱ ${m.time}分</span></div></div></div>`;
     }).join('')}
-    <div style="margin-top:16px"><button class="btn-primary" onclick="applySuggested(${JSON.stringify(menus.map(m=>({id:m.id,isWater:m.isWater||false,uid:String(m.uid)})))})">✅ このメニューで練習を組む</button></div>`;
+    <div style="margin-top:16px"><button class="btn-primary" onclick="applySuggested()">✅ このメニューで練習を組む</button></div>`;
   resultDiv.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function applySuggested(items){
+function applySuggested(){
+  const menus = window._lastSuggestedMenus;
+  if(!menus||!menus.length){alert('提案メニューがありません。先に自動生成してください');return;}
   const all=getMenus();
-  todayMenus=items.map((item,i)=>{
-    if(item.isWater)return{...WATER_BREAK,uid:Date.now()+i};
-    const m=all.find(x=>x.id===item.id);
-    return m?{...m,uid:Date.now()+i}:null;
+  todayMenus=menus.map((m,i)=>{
+    if(m.isWater)return{...WATER_BREAK,uid:Date.now()+i};
+    const master=all.find(x=>x.id===m.id);
+    const base=master||m;
+    const st=m.setTime||base.setTime||base.time||5;
+    const sc=m.sets||base.sets||1;
+    return{...base,setTime:st,sets:sc,time:st*sc,uid:Date.now()+i};
   }).filter(Boolean);
-  saveTodayDraft();renderTodayList();
-  switchTab('today','manual',null);
-  document.querySelectorAll('#screen-today .tab-item').forEach((el,i)=>el.classList.toggle('active',i===0));
+  saveTodayDraft();
+  // 手動タブへ確実に切り替え
+  document.querySelectorAll('#screen-today .tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#screen-today .tab-item').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-today-manual').classList.add('active');
+  document.querySelectorAll('#screen-today .tab-item')[0].classList.add('active');
+  renderTodayList();
+  document.getElementById('suggestResult').style.display='none';
+  window.scrollTo({top:0,behavior:'smooth'});
 }
 
 // ========== MATCH VIDEO ==========
@@ -1363,7 +1377,7 @@ function applySuggested(items){
 // result: 'win'=勝利 / 'lose'=敗北 / 'draw'=引分
 // url: YouTubeのURL（youtu.be/xxxx 形式推奨）
 const PRESET_MATCHES = [
- {date:'2026-06-07', title:'ほっともっとCUP vs KIZUNA', result:'win',
+  {date:'2026-06-07', title:'ほっともっとCUP vs KIZUNA', result:'win',
    url:'https://youtu.be/O4M0pzw0mdg?si=yO0zVAhrB_wbRqYY'},
   {date:'2026-06-07', title:'ほっともっとCUP vs 本庄アタッカーズ', result:'lose',
    url:'https://youtu.be/M_EzXnx0oFQ?si=HX1NZBT2r7_x2hHH'},

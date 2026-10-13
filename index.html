@@ -169,6 +169,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
 .detail-row .dv{font-weight:500;text-align:right;max-width:65%;}
 .video-link{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#fff5f5;border:1px solid #fecaca;border-radius:var(--radius-sm);color:#dc2626;font-size:15px;font-weight:700;text-decoration:none;margin-top:12px;}
 .save-strip{position:sticky;bottom:68px;z-index:50;padding:0 16px 10px;background:linear-gradient(transparent,#1a2a3a 40%);}
+.edit-action-row{display:flex;gap:8px;margin-bottom:8px;}
+.edit-action-row .btn-secondary{flex:1;min-width:0;width:auto;margin:0;padding:10px 6px;font-size:14px;white-space:nowrap;background:#2a3d52;color:#f0c16b;border:1.5px solid #c9923a;box-shadow:0 2px 5px rgba(0,0,0,.25);}
+@media(max-width:360px){.edit-action-row{gap:6px}.edit-action-row .btn-secondary{font-size:13px;padding:10px 3px;}}
+.edit-action-row .btn-secondary:active{background:#3a526a;transform:scale(.98);}
 /* PRACTICE SESSION MODE */
 .btn-start{background:linear-gradient(135deg,#1a5a1a,#2a8a2a);color:#90ff90;border:1.5px solid #3a9a3a;border-radius:var(--radius);padding:14px 20px;font-size:16px;font-weight:700;font-family:'Noto Sans JP',sans-serif;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 16px rgba(42,138,42,.35);margin-bottom:8px;transition:transform .1s;}
 .btn-start:active{transform:scale(.98);}
@@ -289,11 +293,11 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   <div class="tab-panel active" id="tab-today-manual">
     <div class="total-bar" id="totalBarArea">
       <div><div class="t-lbl">合計時間</div><div class="t-val" id="totalTime">0 分</div></div>
-      <div style="text-align:center"><button onclick="addWaterBreak()" id="waterAddBtn" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.4);color:#fff;border-radius:8px;padding:6px 12px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">💧 給水追加</button></div>
+      
       <div style="text-align:right"><div class="t-lbl">目標: 180〜210分</div><div class="t-val" id="menuCount">0 件</div></div>
     </div>
     <div class="section" id="todayListWrap">
-      <div id="todayList"><div class="empty-state"><div class="icon">🏐</div><p>まだメニューがありません。<br>「練習メニュー一覧」からタップで追加！</p></div></div>
+      <div id="todayList"><div class="empty-state"><div class="icon">🏐</div><p>まだメニューがありません。<br>下の「練習メニューを追加」から始めましょう。</p></div></div>
     </div>
     <div style="padding:0 16px 8px" id="commentArea">
       <div class="form-group">
@@ -302,6 +306,10 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
       </div>
     </div>
     <div class="save-strip" id="saveStripArea">
+      <div class="edit-action-row">
+        <button class="btn-secondary" onclick="openMenuPickerForToday()" id="addPracticeMenuBtn">＋ メニュー追加</button>
+        <button class="btn-secondary" onclick="addWaterBreak()" id="waterAddBtn">💧 給水追加</button>
+      </div>
       <button class="btn-start" onclick="startPracticeSession()" id="startBtn">▶ 練習を始める</button>
       <button class="btn-primary" id="savePracticeBtn" onclick="saveTodayPractice()">💾 練習を保存する</button>
     </div>
@@ -496,13 +504,26 @@ body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text
   </div>
 </div>
 
+<!-- MENU ADD CHOICE MODAL -->
+<div class="modal-overlay" id="menuAddChoiceModal" onclick="if(event.target===this)closeMenuAddChoice()">
+  <div class="modal">
+    <div class="modal-handle" onclick="closeMenuAddChoice()"></div>
+    <div style="padding:0 16px 24px">
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px">📋 メニューの追加方法</div>
+      <div id="pendingMenuName" style="font-size:14px;color:var(--text-muted);margin-bottom:14px"></div>
+      <button class="btn-primary" onclick="appendPendingMenu()" style="margin-bottom:8px">⬇ 末尾に追加</button>
+      <button class="btn-secondary" onclick="openMenuInsertPicker()">↕ 挿入位置を選ぶ</button>
+    </div>
+  </div>
+</div>
+
 <!-- WATER POSITION MODAL -->
 <div class="modal-overlay" id="waterModal" onclick="closeWaterModalOutside(event)">
   <div class="modal">
     <div class="modal-handle" onclick="closeWaterModal()"></div>
     <div style="padding:0 16px 24px">
-      <div style="font-size:16px;font-weight:700;margin-bottom:4px;padding:0 0 12px;border-bottom:1px solid var(--border)">💧 給水タイムをどこに入れる？</div>
-      <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px;padding-top:10px">挿入したい位置をタップしてください</div>
+      <div id="positionModalTitle" style="font-size:16px;font-weight:700;margin-bottom:4px;padding:0 0 12px;border-bottom:1px solid var(--border)">💧 給水タイムをどこに入れる？</div>
+      <div id="positionModalSubtitle" style="font-size:14px;color:var(--text-muted);margin-bottom:12px;padding-top:10px">挿入したい位置をタップしてください</div>
       <div id="waterPositionList"></div>
     </div>
   </div>
@@ -657,6 +678,18 @@ window.addEventListener('load',()=>{
   renderHomeStatus();
 });
 
+// ========== MENU ADD FROM TODAY ==========
+let returnToTodayAfterMenuAdd = false;
+let pendingMenuToAdd = null;
+function openMenuPickerForToday(){
+  returnToTodayAfterMenuAdd = true;
+  const navButtons = document.querySelectorAll('.nav-btn');
+  showScreen('db', navButtons[1]);
+  document.getElementById('searchInput').value = '';
+  activeFilter = 'all';
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.toggle('active', c.textContent.trim()==='すべて'));
+  filterMenus();
+}
 // ========== NAV ==========
 function showScreen(name,btn){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -829,10 +862,59 @@ function addToToday(id,evt){
   const m=getMenus().find(x=>x.id===id);if(!m)return;
   const st = m.setTime||m.time||5;
   const sc = m.sets||1;
-  todayMenus.push({...m, setTime:st, sets:sc, time:st*sc, uid:Date.now()+Math.random()});
+  const prepared={...m, setTime:st, sets:sc, time:st*sc, uid:Date.now()+Math.random()};
+  if(returnToTodayAfterMenuAdd){
+    pendingMenuToAdd=prepared;
+    document.getElementById('pendingMenuName').textContent=`「${m.name}」をどこに追加しますか？`;
+    document.getElementById('menuAddChoiceModal').classList.add('open');
+    return;
+  }
+  todayMenus.push(prepared);
   saveTodayDraft();renderTodayList();
   if(evt){const b=evt.target;b.textContent='✓';b.style.background='#16a34a';setTimeout(()=>{b.textContent='＋';b.style.background='';},800);}
 }
+function closeMenuAddChoice(){
+  document.getElementById('menuAddChoiceModal').classList.remove('open');
+}
+function appendPendingMenu(){
+  if(!pendingMenuToAdd)return;
+  todayMenus.push(pendingMenuToAdd);
+  pendingMenuToAdd=null;
+  closeMenuAddChoice();
+  closeWaterModal();
+  returnToTodayAfterMenuAdd=false;
+  saveTodayDraft();renderTodayList();
+  showScreen('today',document.querySelectorAll('.nav-btn')[2]);
+  renderHomeStatus();
+}
+function openMenuInsertPicker(){
+  if(!pendingMenuToAdd)return;
+  closeMenuAddChoice();
+  const title=document.getElementById('positionModalTitle');
+  const subtitle=document.getElementById('positionModalSubtitle');
+  title.textContent='📋 練習メニューをどこに入れる？';
+  subtitle.textContent='追加したい位置をタップしてください';
+  const list=document.getElementById('waterPositionList');
+  let html=`<div class="water-pos-item" onclick="insertPendingMenuAt(0)" style="background:#2a3d52;border:1px dashed #c9923a;text-align:center;color:#e0aa55;font-weight:700;font-size:15px;padding:12px">⬆ 一番最初に追加</div>`;
+  todayMenus.forEach((m,i)=>{
+    const label=m.isWater?'💧 給水タイム':m.name;
+    const cat=m.isWater?'':`<span class="tag tag-cat" style="font-size:13px;margin-left:6px">${m.cat.trim()}</span>`;
+    html+=`<div class="water-pos-item water-pos-after" onclick="insertPendingMenuAt(${i+1})"><div class="water-pos-menu">${label}${cat}</div><div class="water-pos-insert" style="color:#e0aa55">＋ この下に追加</div></div>`;
+  });
+  list.innerHTML=html;
+  document.getElementById('waterModal').classList.add('open');
+}
+function insertPendingMenuAt(idx){
+  if(!pendingMenuToAdd)return;
+  todayMenus.splice(idx,0,pendingMenuToAdd);
+  pendingMenuToAdd=null;
+  closeWaterModal();
+  returnToTodayAfterMenuAdd=false;
+  saveTodayDraft();renderTodayList();
+  showScreen('today',document.querySelectorAll('.nav-btn')[2]);
+  renderHomeStatus();
+}
+
 function removeFromToday(uid){
   todayMenus=todayMenus.filter(m=>m.uid!==uid);
   saveTodayDraft();renderTodayList();
@@ -845,6 +927,8 @@ function addWaterBreak(){
     return;
   }
   // Show position picker modal
+  document.getElementById('positionModalTitle').textContent='💧 給水タイムをどこに入れる？';
+  document.getElementById('positionModalSubtitle').textContent='挿入したい位置をタップしてください';
   const list=document.getElementById('waterPositionList');
   let html='';
   // "最初に入れる" option
@@ -1222,7 +1306,7 @@ function startPracticeSession(){
   document.getElementById('startBtn').style.display='none';
   document.getElementById('savePracticeBtn').classList.add('session-hide');
   document.getElementById('commentArea').classList.add('session-hide');
-  document.getElementById('waterAddBtn').classList.add('session-hide');
+  const waterBtn=document.getElementById('waterAddBtn');if(waterBtn)waterBtn.classList.add('session-hide');
   // 止めるボタン追加
   const strip=document.getElementById('saveStripArea');
   const stopBtn=document.createElement('button');
@@ -1241,7 +1325,7 @@ function stopPracticeSession(){
   document.getElementById('startBtn').style.display='';
   document.getElementById('savePracticeBtn').classList.remove('session-hide');
   document.getElementById('commentArea').classList.remove('session-hide');
-  document.getElementById('waterAddBtn').classList.remove('session-hide');
+  const waterBtn=document.getElementById('waterAddBtn');if(waterBtn)waterBtn.classList.remove('session-hide');
   const stopBtn=document.getElementById('stopBtn');
   if(stopBtn)stopBtn.remove();
   renderTodayList();
@@ -1373,28 +1457,20 @@ function applySuggested(){
 }
 
 // ========== MATCH VIDEO ==========
-// ★ 試合動画をここに登録してください
-// result: 'win'=勝利 / 'lose'=敗北 / 'draw'=引分
-// url: YouTubeのURL（youtu.be/xxxx 形式推奨）
+// 直近の大会動画（ジュニア／オフィシャル）
 const PRESET_MATCHES = [
-  {date:'2026-07-25', title:'月越合同練習1試合目', result:'win',
-   url:'https://youtu.be/ijND-B4rAzQ?si=lv4Lj7awFsBtCOTY'},
-  {date:'2026-07-25', title:'月越合同練2試合目', result:'win',
-   url:'https://youtu.be/iI4v5cN2RKA?si=jSthCwBywQXAitDv'},
-   {date:'2026-07-25', title:'月越合同練3試合目', result:'win',
-   url:'https://youtu.be/IzwEcmhIMKs?si=Cvbx_qW91wZJAA15'},
-    {date:'2026-07-25', title:'月越合同練6試合目', result:'win',
-   url:'https://youtu.be/2IZbqkXykOE?si=bkm5pccAGSagk9MU'},
-    {date:'2026-07-25', title:'月越合同練7試合目', result:'lose',
-   url:'https://youtu.be/oHylZOLXrhc?si=IneX8zoSbT2LXeg1'},
-    {date:'2026-07-25', title:'月越合同練8試合目', result:'win',
-   url:'https://youtu.be/iOFdLos552Q?si=l84MMAB-2tOCW1oU'},
-    {date:'2026-06-20', title:'ドッジボール教室 vs INNOCENT☆HURRICANES ', result:'lose',
-   url:'https://www.youtube.com/watch?v=iYRrQHUrTwo'},
-    {date:'2026-06-20', title:'ドッジボール教室 vs 月越ストーム ', result:'lose',
-   url:'https://www.youtube.com/watch?v=hSy09dpIX0w'},
-    {date:'2026-06-20', title:'ドッジボール教室 vs 大谷ブルーウインズ ', result:'lose',
-   url:'https://www.youtube.com/watch?v=K2L4G_tZHgA'},
+  // ジュニア
+  {date:'2026-10-10', division:'ジュニア', event:'イオン杯小学生オープンドッジボール大会', stage:'予選リーグ', match:'1回戦目', opponent:'梅が丘ドッジボールクラブJr', url:'https://youtu.be/swokOO9Vjmo'},
+  {date:'2026-10-10', division:'ジュニア', event:'イオン杯小学生オープンドッジボール大会', stage:'予選リーグ', match:'2回戦目', opponent:'乙戸ブルーサンダース Jr.', url:'https://youtu.be/qa9PmksDiOE'},
+  {date:'2026-10-10', division:'ジュニア', event:'イオン杯小学生オープンドッジボール大会', stage:'予選リーグ', match:'3回戦目', opponent:'吉田☆ラッキースターズJr.', url:'https://youtu.be/O9atcu7H7Zw'},
+  {date:'2026-10-10', division:'ジュニア', event:'イオン杯小学生オープンドッジボール大会', stage:'トーナメント', match:'1回戦目', opponent:'よつわキッズJr.', url:'https://youtu.be/YDGjlxLvVIc'},
+  {date:'2026-10-10', division:'ジュニア', event:'イオン杯小学生オープンドッジボール大会', stage:'トーナメント', match:'2回戦目', opponent:'笠間ピュアスターズJr', url:'https://youtu.be/KRQCOgIUPf4'},
+  // オフィシャル
+  {date:'2026-10-10', division:'オフィシャル', event:'イオン杯小学生オープンドッジボール大会', stage:'予選リーグ', match:'1回戦目', opponent:'吉田☆ラッキースターズ', url:'https://youtu.be/9vo0LlmesCU'},
+  {date:'2026-10-10', division:'オフィシャル', event:'イオン杯小学生オープンドッジボール大会', stage:'予選リーグ', match:'2回戦目', opponent:'赤塚RESPECT', url:'https://youtu.be/joAXHiwM7ZQ'},
+  {date:'2026-10-10', division:'オフィシャル', event:'イオン杯小学生オープンドッジボール大会', stage:'予選リーグ', match:'3回戦目', opponent:'S.K.D.VICTORY', url:'https://youtu.be/NW-OlXYqb_E'},
+  {date:'2026-10-10', division:'オフィシャル', event:'イオン杯小学生オープンドッジボール大会', stage:'予選リーグ', match:'4回戦目', opponent:'五本松ドッジハンターズA', url:'https://youtu.be/i5dAvBFDV6E'},
+  {date:'2026-10-10', division:'オフィシャル', event:'イオン杯小学生オープンドッジボール大会', stage:'トーナメント', match:'1回戦目', opponent:'笠間ピュアスターズ', url:'https://youtu.be/EfhbOqoAHlw'},
 ];
 
 function openMatchModal(){
@@ -1405,27 +1481,34 @@ function openMatchModal(){
 function renderMatchList(){
   const c=document.getElementById('matchList');
   if(!PRESET_MATCHES.length){
-    c.innerHTML='<div class="empty-state" style="padding:30px 0"><div class="icon">🎬</div><p>試合が登録されていません。<br>ソースコードの PRESET_MATCHES に<br>URLを追加してください。</p></div>';
+    c.innerHTML='<div class="empty-state" style="padding:30px 0"><div class="icon">🎬</div><p>試合動画が登録されていません。</p></div>';
     return;
   }
-  const resultLabel={win:'✅ 勝利',lose:'❌ 敗北',draw:'🤝 引分'};
-  const resultColor={win:'#60d890',lose:'#e07070',draw:'#e0aa55'};
-  const sorted=[...PRESET_MATCHES].sort((a,b)=>b.date.localeCompare(a.date));
-  c.innerHTML=sorted.map(m=>`
-    <a href="${m.url}" target="_blank" style="display:block;text-decoration:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
-        <div style="flex:1;min-width:0">
-          <div style="font-size:15px;font-weight:700;color:#90c8ff;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.title}</div>
-          <div style="display:flex;gap:10px;align-items:center;font-size:13px">
-            <span style="color:var(--text-muted)">${m.date}</span>
-            <span style="font-weight:700;color:${resultColor[m.result]||'#aaa'}">${resultLabel[m.result]||''}</span>
-          </div>
-        </div>
-        <div style="flex-shrink:0;background:#1a2a4a;border:1px solid #2a5a8a;color:#90c8ff;border-radius:8px;padding:8px 14px;font-size:14px;font-weight:700">▶ 観る</div>
-      </div>
-    </a>`).join('');
+  const divisions=['ジュニア','オフィシャル'];
+  c.innerHTML=divisions.map(division=>{
+    const matches=PRESET_MATCHES.filter(m=>m.division===division);
+    if(!matches.length) return '';
+    const groups=['予選リーグ','トーナメント'];
+    return `<section style="margin-bottom:22px">
+      <div style="font-size:17px;font-weight:800;color:#90c8ff;padding:10px 2px;border-bottom:1px solid var(--border);margin-bottom:10px">${division}</div>
+      <div style="font-size:13px;color:var(--text-muted);margin:0 2px 12px">イオン杯小学生オープンドッジボール大会　｜　2026年10月10日</div>
+      ${groups.map(stage=>{
+        const items=matches.filter(m=>m.stage===stage);
+        if(!items.length) return '';
+        return `<div style="font-size:14px;font-weight:700;color:var(--text);margin:14px 2px 8px">${stage}</div>`+
+          items.map(m=>`<a href="${m.url}" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;margin-bottom:8px">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:12px;color:var(--text-muted);margin-bottom:4px">${m.match}</div>
+                <div style="font-size:15px;font-weight:700;color:var(--text);overflow-wrap:anywhere">vs ${m.opponent}</div>
+              </div>
+              <div style="flex-shrink:0;background:#1a2a4a;border:1px solid #2a5a8a;color:#90c8ff;border-radius:8px;padding:8px 12px;font-size:14px;font-weight:700">▶ 観る</div>
+            </div>
+          </a>`).join('');
+      }).join('')}
+    </section>`;
+  }).join('');
 }
-
 
 function encodeMenuCode(menus){
   const parts=menus.map(m=>{
